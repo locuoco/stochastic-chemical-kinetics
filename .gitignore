@@ -1,0 +1,18 @@
+# Ignore all files without extension, except LICENSE
+*
+!*.*
+!*/
+!LICENSE
+
+# Temporary/backup files
+*.bak
+
+# Windows dynamic-link libraries
+*.dll
+
+# Windows executables
+*.exe
+
+# References
+ref/
+tex/
