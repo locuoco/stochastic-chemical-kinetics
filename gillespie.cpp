@@ -15,11 +15,16 @@ int main()
 {
 	ekinetics_gillespie system({1., 1., .1}, 50, 100);
 
-	system.x = {0, 0};
-	system.simulate(1000);
+	std::vector<stoch_state<>> states;
 
-	std::cout << system.x[eks_P] << std::endl;
-	std::cout << "time = " << system.t << std::endl;
+	system.x = {0, 0};
+	system.simulate(states, 10);
+
+	for (const auto& state : states)
+	{
+		std::cout << state.x[eks_C] << '\n';
+		std::cout << "time = " << state.t << '\n';
+	}
 
 	return 0;
 }

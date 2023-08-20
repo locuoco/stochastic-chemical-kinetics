@@ -8,7 +8,15 @@
 #include <functional> // function
 #include <stdexcept> // domain_error
 #include <string>
+#include <vector>
 #include <cmath> // log
+
+template <std::floating_point T = double>
+struct stoch_state
+{
+	std::valarray<int> x;
+	T t;
+};
 
 template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 requires (N_r > 0 && N_s > 0)
@@ -28,6 +36,12 @@ public:
 
 	std::valarray<int> x = std::valarray<int>(N_s); // population numbers
 	T t = 0; // time
+
+	gillespie() noexcept
+	// default constructor
+	{
+		x = 0;
+	}
 
 	T total_propensity() const
 	// return the total propensity, i.e., the sum of all propensity functions
@@ -71,6 +85,19 @@ public:
 			step();
 	}
 
+	void simulate(std::vector<stoch_state<T>>& states, std::size_t n, bool b_initial = true)
+	// simulate for n steps and save the states inside a list (final state is always included)
+	// set b_initial to false if the initial state should not be included (default is true)
+	{
+		if (b_initial)
+			states.push_back({x, t});
+		for (std::size_t i = 0; i < n; ++i)
+		{
+			step();
+			states.push_back({x, t});
+		}
+	}
+
 	virtual T a(std::size_t i) const = 0;
 	// propensity functions
 	//	i: reaction channel index
@@ -97,11 +124,10 @@ public:
 	std::array<T, ekrc_N> kappa;
 	int ET, ST;
 
-	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, int ET, int ST)
+	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, int ET, int ST) noexcept
 		: kappa(kappa), ET(ET), ST(ST)
 	// default constructor
 	{
-		x = {0, 0};
 		nu[ekrc_f] = {1, 0};
 		nu[ekrc_b] = {-1, 0};
 		nu[ekrc_cat] = {-1, 1};
