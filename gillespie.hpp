@@ -9,7 +9,7 @@
 #include <stdexcept> // domain_error
 #include <string>
 #include <vector>
-#include <cmath> // log
+#include <cmath> // log, sqrt
 
 template <std::floating_point T = double>
 struct stoch_state
@@ -56,10 +56,12 @@ public:
 		return a_tot;
 	}
 
-	bool step()
+	bool step(T t_final = 0)
 	// a single step of the stochastic simulation algorithm (Gillespie)
-	// return whether a reaction has been performed successfully or not
+	// return whether a reaction has been performed successfully before time t_final or not
 	{
+		using std::log;
+
 		T r1 = u_dist(gen);
 		T r2 = u_dist(gen);
 
@@ -68,13 +70,20 @@ public:
 		if (a_tot == 0)
 			return false; // no reaction is possible
 
-		T tau = -std::log(r1)/a_tot;
+		T tau = -log(r1)/a_tot;
+
+		if (t + tau > t_final && t_final > 0)
+			return false; // reaction would be performed after t_final
 
 		std::size_t j;
 
+		T a_accum = 0;
 		for (j = 0; j < N_r-1; ++j)
-			if (a(j) > r2*a_tot)
+		{
+			a_accum += a(j);
+			if (a_accum > r2*a_tot)
 				break;
+		}
 
 		t += tau;
 		x += nu[j];
@@ -87,8 +96,8 @@ public:
 	// set t_final to 0 or negative number for infinity
 	// if the total propensity gets to zero, the simulation will be terminated
 	{
-		for (std::size_t i = 0; i < n && (t < t_final || t_final <= 0); ++i)
-			if (!step())
+		for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
+			if (!step(t_final))
 				break;
 	}
 
@@ -100,9 +109,9 @@ public:
 	{
 		if (b_initial)
 			states.push_back({x, t});
-		for (std::size_t i = 0; i < n && (t < t_final || t_final <= 0); ++i)
+		for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
 		{
-			if (!step())
+			if (!step(t_final))
 				break;
 			states.push_back({x, t});
 		}
@@ -169,7 +178,61 @@ public:
 	}
 };
 
+enum tqssa_substance : std::size_t {tqs_P, tqs_N};
+// tQSSA substances
 
+template <std::floating_point T = double>
+class tqssa_gillespie : public gillespie<1, 1, T>
+// Gillespie algorithm applied to tQSSA (total quasi-steady state approximation)
+{
+	using base = gillespie<1, 1, T>;
+
+	using base::nu;
+
+public:
+
+	using base::x;
+	using base::t;
+
+	T kcat, kM;
+	long long ET, ST;
+
+	tqssa_gillespie(T kcat, T kM, long long ET, long long ST) noexcept
+		: kcat(kcat), kM(kM), ET(ET), ST(ST)
+	// constructor
+	//	kcat: catalysis rate constant
+	//	kM: Michaelis-Menten constant ( (kb+kcat) / kf )
+	//	ET: total enzyme concentration constant (it is conserved)
+	//	ST: total substrate/product concentration constant (it is conserved)
+	{
+		nu[0] = {1};
+	}
+
+	T a(std::size_t i) const final override
+	// propensity functions
+	//	i: reaction channel index
+	{
+		using std::sqrt;
+
+		if (x[tqs_P] > ST)
+			throw std::domain_error(std::string("Current state ")
+				+ std::to_string(x[tqs_P])
+				+ " is incompatible with constants of motion.");
+		switch (i)
+		{
+			case 0:
+			{
+				long long S_hat = ST - x[tqs_P];
+				long long c = 2*ET*S_hat;
+				T b = ET + S_hat + kM;
+				T Delta = b*b - 2*c;
+				return kcat*c / (b + sqrt(Delta));
+			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds");
+		}
+	}
+};
 
 #endif // SEK_GILLESPIE
 
