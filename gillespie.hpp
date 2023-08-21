@@ -234,6 +234,59 @@ public:
 	}
 };
 
+enum sqssa_substance : std::size_t {sqs_P, sqs_N};
+// sQSSA substances
+
+template <std::floating_point T = double>
+class sqssa_gillespie : public gillespie<1, 1, T>
+// Gillespie algorithm applied to sQSSA (standard quasi-steady state approximation)
+{
+	using base = gillespie<1, 1, T>;
+
+	using base::nu;
+
+public:
+
+	using base::x;
+	using base::t;
+
+	T kcat, kM;
+	long long ET, ST;
+
+	sqssa_gillespie(T kcat, T kM, long long ET, long long ST) noexcept
+		: kcat(kcat), kM(kM), ET(ET), ST(ST)
+	// constructor
+	//	kcat: catalysis rate constant
+	//	kM: Michaelis-Menten constant ( (kb+kcat) / kf )
+	//	ET: total enzyme concentration constant (it is conserved)
+	//	ST: total substrate/product concentration constant (it is conserved)
+	{
+		nu[0] = {1};
+	}
+
+	T a(std::size_t i) const final override
+	// propensity functions
+	//	i: reaction channel index
+	{
+		using std::sqrt;
+
+		if (x[sqs_P] > ST)
+			throw std::domain_error(std::string("Current state ")
+				+ std::to_string(x[sqs_P])
+				+ " is incompatible with constants of motion.");
+		switch (i)
+		{
+			case 0:
+			{
+				long long S = ST - x[tqs_P];
+				return kcat*(ET*S) / (S + kM);
+			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds");
+		}
+	}
+};
+
 #endif // SEK_GILLESPIE
 
 
