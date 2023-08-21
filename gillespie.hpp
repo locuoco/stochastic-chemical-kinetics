@@ -24,6 +24,7 @@ requires (N_r > 0 && N_s > 0)
 // N_s: number of substances (chemical species)
 // N_r: number of reaction channels
 class gillespie
+// Gillespie general algorithm
 {
 	std::mt19937_64 gen; // random number generator (64-bit Mersenne Twister)
 	std::uniform_real_distribution<T> u_dist = std::uniform_real_distribution<T>(0, 1);
@@ -55,8 +56,9 @@ public:
 		return a_tot;
 	}
 
-	void step()
+	bool step()
 	// a single step of the stochastic simulation algorithm (Gillespie)
+	// return whether a reaction has been performed successfully or not
 	{
 		T r1 = u_dist(gen);
 		T r2 = u_dist(gen);
@@ -64,7 +66,7 @@ public:
 		T a_tot = total_propensity();
 
 		if (a_tot == 0)
-			return; // no reaction is possible
+			return false; // no reaction is possible
 
 		T tau = -std::log(r1)/a_tot;
 
@@ -76,24 +78,32 @@ public:
 
 		t += tau;
 		x += nu[j];
+
+		return true;
 	}
 
-	void simulate(std::size_t n)
-	// simulate for n steps
+	void simulate(std::size_t n, T t_final = 0)
+	// simulate for n steps or until t >= t_final
+	// set t_final to 0 or negative number for infinity
+	// if the total propensity gets to zero, the simulation will be terminated
 	{
-		for (std::size_t i = 0; i < n; ++i)
-			step();
+		for (std::size_t i = 0; i < n && (t < t_final || t_final <= 0); ++i)
+			if (!step())
+				break;
 	}
 
-	void simulate(std::vector<stoch_state<T>>& states, std::size_t n, bool b_initial = true)
-	// simulate for n steps and save the states inside a list (final state is always included)
+	void simulate(std::vector<stoch_state<T>>& states, std::size_t n, T t_final = 0, bool b_initial = true)
+	// simulate for n steps or until t >= t_final, and save the states inside a list (final state is always included)
+	// set t_final to 0 or negative number for infinity
 	// set b_initial to false if the initial state should not be included (default is true)
+	// if the total propensity gets to zero, the simulation will be terminated
 	{
 		if (b_initial)
 			states.push_back({x, t});
-		for (std::size_t i = 0; i < n; ++i)
+		for (std::size_t i = 0; i < n && (t < t_final || t_final <= 0); ++i)
 		{
-			step();
+			if (!step())
+				break;
 			states.push_back({x, t});
 		}
 	}
@@ -111,6 +121,7 @@ enum enzyme_kinetics_reaction_channel : std::size_t {ekrc_f, ekrc_b, ekrc_cat, e
 
 template <std::floating_point T = double>
 class ekinetics_gillespie : public gillespie<eks_N, ekrc_N, T>
+// Gillespie algorithm applied to enzyme kinetics
 {
 	using base = gillespie<eks_N, ekrc_N, T>;
 
@@ -126,18 +137,24 @@ public:
 
 	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, int ET, int ST) noexcept
 		: kappa(kappa), ET(ET), ST(ST)
-	// default constructor
+	// constructor
+	//	kappa: the set of the three rate constants associated to the three reactions
+	//	ET: total enzyme concentration constant (it is conserved)
+	//	ST: total substrate/product concentration constant (it is conserved)
 	{
 		nu[ekrc_f] = {1, 0};
 		nu[ekrc_b] = {-1, 0};
 		nu[ekrc_cat] = {-1, 1};
 	}
 
-	T a(std::size_t i) const override
+	T a(std::size_t i) const override final
+	// propensity functions
+	//	i: reaction channel index
 	{
 		if (x[eks_C] > ET || x[eks_C] + x[eks_P] > ST)
 			throw std::domain_error(std::string("Current state ")
-				+ std::to_string(x[0]) + ", " + std::to_string(x[1]) + " is incopatible with constants of motion.");
+				+ std::to_string(x[eks_C]) + ", " + std::to_string(x[eks_P])
+				+ " is incopatible with constants of motion.");
 		switch (i)
 		{
 			case ekrc_f:

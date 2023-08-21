@@ -18,12 +18,14 @@ int main()
 	std::vector<stoch_state<>> states;
 
 	system.x = {0, 0};
-	system.simulate(states, 10);
+	system.simulate(states, 1000);
+
+	std::cout << "# steps: " << states.size() << '\n';
 
 	for (const auto& state : states)
 	{
-		std::cout << state.x[eks_C] << '\n';
-		std::cout << "time = " << state.t << '\n';
+		std::cout << '{' << state.x[eks_C] << ", " << state.x[eks_P] << "}, ";
+		std::cout << state.t << '\n';
 	}
 
 	return 0;
