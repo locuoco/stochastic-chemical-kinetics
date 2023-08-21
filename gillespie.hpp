@@ -14,7 +14,7 @@
 template <std::floating_point T = double>
 struct stoch_state
 {
-	std::valarray<int> x;
+	std::valarray<long long> x;
 	T t;
 };
 
@@ -31,11 +31,11 @@ class gillespie
 
 protected:
 
-	std::array<std::valarray<int>, N_r> nu; // stoichiometric vector
+	std::array<std::valarray<long long>, N_r> nu; // stoichiometric vector
 
 public:
 
-	std::valarray<int> x = std::valarray<int>(N_s); // population numbers
+	std::valarray<long long> x = std::valarray<long long>(N_s); // population numbers
 	T t = 0; // time
 
 	gillespie() noexcept
@@ -133,9 +133,9 @@ public:
 	using base::t;
 
 	std::array<T, ekrc_N> kappa;
-	int ET, ST;
+	long long ET, ST;
 
-	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, int ET, int ST) noexcept
+	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, long long ET, long long ST) noexcept
 		: kappa(kappa), ET(ET), ST(ST)
 	// constructor
 	//	kappa: the set of the three rate constants associated to the three reactions
@@ -147,14 +147,14 @@ public:
 		nu[ekrc_cat] = {-1, 1};
 	}
 
-	T a(std::size_t i) const override final
+	T a(std::size_t i) const final override
 	// propensity functions
 	//	i: reaction channel index
 	{
 		if (x[eks_C] > ET || x[eks_C] + x[eks_P] > ST)
 			throw std::domain_error(std::string("Current state ")
 				+ std::to_string(x[eks_C]) + ", " + std::to_string(x[eks_P])
-				+ " is incopatible with constants of motion.");
+				+ " is incompatible with constants of motion.");
 		switch (i)
 		{
 			case ekrc_f:
@@ -168,6 +168,8 @@ public:
 		}
 	}
 };
+
+
 
 #endif // SEK_GILLESPIE
 
