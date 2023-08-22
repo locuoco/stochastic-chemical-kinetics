@@ -20,9 +20,9 @@ struct stoch_state
 
 template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 requires (N_r > 0 && N_s > 0)
-// T: underlying floating point type
 // N_s: number of substances (chemical species)
 // N_r: number of reaction channels
+// T: underlying floating point type
 class gillespie
 // Gillespie general algorithm
 {
@@ -62,13 +62,13 @@ public:
 	{
 		using std::log;
 
-		T r1 = u_dist(gen);
-		T r2 = u_dist(gen);
-
 		T a_tot = total_propensity();
 
 		if (a_tot == 0)
 			return false; // no reaction is possible
+
+		T r1 = u_dist(gen);
+		T r2 = u_dist(gen);
 
 		T tau = -log(r1)/a_tot;
 
@@ -240,6 +240,7 @@ enum sqssa_substance : std::size_t {sqs_P, sqs_N};
 template <std::floating_point T = double>
 class sqssa_gillespie : public gillespie<1, 1, T>
 // Gillespie algorithm applied to sQSSA (standard quasi-steady state approximation)
+// untested
 {
 	using base = gillespie<1, 1, T>;
 
