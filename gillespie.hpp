@@ -1,28 +1,49 @@
-// Stochastic enzyme kinetics: Gillespie algorithm
+//  Stochastic enzyme kinetics: Gillespie algorithm
+//  Copyright (C) 2023 Alessandro Lo Cuoco (alessandro.locuoco@gmail.com)
+
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef SEK_GILLESPIE
+#define SEK_GILLESPIE
 
 #include <random> // uniform_real_distribution, mt19937_64
 #include <valarray>
 #include <concepts> // floating_point
 #include <functional> // function
-#include <stdexcept> // domain_error
+#include <stdexcept> // domain_error, out_of_range
 #include <string>
 #include <vector>
+#include <array>
 #include <cmath> // log, sqrt
 
+#include "common.hpp"
+
 template <std::floating_point T = double>
-struct stoch_state
+struct gillespie_state
 {
 	std::valarray<long long> x;
 	T t;
 };
 
+// template argument deduction guide
+gillespie_state() -> gillespie_state<double>;
+
 template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 requires (N_r > 0 && N_s > 0)
 // N_s: number of substances (chemical species)
 // N_r: number of reaction channels
-// T: underlying floating point type
+// T: underlying floating-point type
 class gillespie
 // Gillespie general algorithm
 {
@@ -44,6 +65,8 @@ public:
 		x = 0;
 	}
 
+	virtual ~gillespie() = default;
+
 	T total_propensity() const
 	// return the total propensity, i.e., the sum of all propensity functions
 	// calculated at the current population numbers x.
@@ -59,6 +82,7 @@ public:
 	bool step(T t_final = 0)
 	// a single step of the stochastic simulation algorithm (Gillespie)
 	// return whether a reaction has been performed successfully before time t_final or not
+	// set t_final to 0 or negative number for infinity
 	{
 		using std::log;
 
@@ -101,7 +125,7 @@ public:
 				break;
 	}
 
-	void simulate(std::vector<stoch_state<T>>& states, std::size_t n, T t_final = 0, bool b_initial = true)
+	void simulate(std::vector<gillespie_state<T>>& states, std::size_t n, T t_final = 0, bool b_initial = true)
 	// simulate for n steps or until t >= t_final, and save the states inside a list (final state is always included)
 	// set t_final to 0 or negative number for infinity
 	// set b_initial to false if the initial state should not be included (default is true)
@@ -121,12 +145,6 @@ public:
 	// propensity functions
 	//	i: reaction channel index
 };
-
-enum enzyme_kinetics_substance : std::size_t {eks_C, eks_P, eks_N};
-// enzyme kinetics substances
-
-enum enzyme_kinetics_reaction_channel : std::size_t {ekrc_f, ekrc_b, ekrc_cat, ekrc_N};
-// enzyme kinetics reaction channels
 
 template <std::floating_point T = double>
 class ekinetics_gillespie : public gillespie<eks_N, ekrc_N, T>
@@ -177,9 +195,6 @@ public:
 		}
 	}
 };
-
-enum tqssa_substance : std::size_t {tqs_P, tqs_N};
-// tQSSA substances
 
 template <std::floating_point T = double>
 class tqssa_gillespie : public gillespie<1, 1, T>
