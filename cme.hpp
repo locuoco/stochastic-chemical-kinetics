@@ -23,6 +23,7 @@
 #include <array>
 #include <algorithm> // max, min
 #include <vector>
+#include <cmath> // sqrt
 
 #include "common.hpp"
 #include "tensor.hpp"
@@ -35,7 +36,7 @@ struct cme_state
 };
 
 // template argument deduction guide
-cme_state() -> cme_state<double>;
+cme_state() -> cme_state<>;
 
 template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 requires (N_r > 0 && N_s > 0)
@@ -192,7 +193,7 @@ public:
 	ekinetics_cme(const std::array<T, ekrc_N>& kappa, long long ET, long long ST) noexcept
 		: base({ET+1, ST+1}), kappa(kappa), ET(ET), ST(ST)
 	// constructor
-	//	kappa: the set of the three rate constants associated to the three reactions
+	//	kappa: the set of the three rate constants associated to the three reactions (f, b, cat)
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
@@ -216,6 +217,97 @@ public:
 				return kappa[ekrc_b] * y[eks_C];
 			case ekrc_cat:
 				return kappa[ekrc_cat] * y[eks_C];
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class tqssa_cme : public cme<1, 1, T>
+// Chemical master equation applied to tQSSA (total quasi-steady state approximation)
+{
+	using base = cme<1, 1, T>;
+
+	using base::nu;
+
+public:
+
+	T kcat, kM;
+	long long ET, ST;
+
+	tqssa_cme(T kM, T kcat, long long ET, long long ST) noexcept
+		: base({ST+1}), kcat(kcat), kM(kM), ET(ET), ST(ST)
+	// constructor
+	//	kM: Michaelis-Menten constant ( (kb+kcat) / kf )
+	//	kcat: catalysis rate constant
+	//	ET: total enzyme concentration constant (it is conserved)
+	//	ST: total substrate/product concentration constant (it is conserved)
+	{
+		nu[0] = {1};
+	}
+
+	T a(const physics::vec<long long, tqs_N>& y, std::size_t i) const final override
+	// propensity functions
+	//	y: population numbers
+	//	i: reaction channel index
+	{
+		using std::sqrt;
+
+		switch (i)
+		{
+			case 0:
+			{
+				long long S_hat = ST - y[tqs_P];
+				long long c = 2*ET*S_hat;
+				T b = ET + S_hat + kM;
+				T Delta = b*b - 2*c;
+				return kcat*c / (b + sqrt(Delta));
+			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class sqssa_cme : public cme<1, 1, T>
+// Chemical master equation applied to sQSSA (standard quasi-steady state approximation)
+{
+	using base = cme<1, 1, T>;
+
+	using base::nu;
+
+public:
+
+	T kcat, kM;
+	long long ET, ST;
+
+	sqssa_cme(T kM, T kcat, long long ET, long long ST) noexcept
+		: base({ST+1}), kcat(kcat), kM(kM), ET(ET), ST(ST)
+	// constructor
+	//	kM: Michaelis-Menten constant ( (kb+kcat) / kf )
+	//	kcat: catalysis rate constant
+	//	ET: total enzyme concentration constant (it is conserved)
+	//	ST: total substrate/product concentration constant (it is conserved)
+	{
+		nu[0] = {1};
+	}
+
+	T a(const physics::vec<long long, sqs_N>& y, std::size_t i) const final override
+	// propensity functions
+	//	y: population numbers
+	//	i: reaction channel index
+	{
+		using std::sqrt;
+
+		switch (i)
+		{
+			case 0:
+			{
+				long long S = ST - y[sqs_P];
+				return kcat*(ET*S) / (S + kM);
+			}
 			default:
 				throw std::out_of_range("Reaction channel index out of bounds");
 		}

@@ -26,4 +26,7 @@ enum enzyme_kinetics_reaction_channel : std::size_t {ekrc_f, ekrc_b, ekrc_cat, e
 enum tqssa_substance : std::size_t {tqs_P, tqs_N};
 // tQSSA substances
 
+enum sqssa_substance : std::size_t {sqs_P, sqs_N};
+// sQSSA substances
+
 #endif // SEK_COMMON

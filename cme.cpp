@@ -29,12 +29,15 @@ g++ cme.cpp -o cme -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=1
 
 int main()
 {
-	double kf = 10, kb = 9, kcat = 1; // , kM = (kb + kcat) / kf
-	long long ET = 1, ST = 9;
+	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
+	long long ET = 10, ST = 9;
+	double t = 1, dt = 1e-4, max_steps = 200'000;
 
-	rk4 integ;
+	rk4_3_8 integ;
+
+	// Full model
 	ekinetics_cme system({kf, kb, kcat}, ET, ST);
-	system.simulate(integ, 100'000, 1e-3, 20);
+	system.simulate(integ, max_steps, dt, t);
 
 	auto state = system.get_state();
 	for (std::size_t i = 0; i < state.p.size(); ++i)
@@ -42,6 +45,31 @@ int main()
 		auto pop = system.get_pop(i);
 		std::cout << pop[eks_C] << ", " << pop[eks_P] << ": " << state.p[i] << '\n';
 	}
+	std::cout << "t = " << state.t << '\n';
+
+	// tQSSA
+	tqssa_cme sys2(kM, kcat, ET, ST);
+	sys2.simulate(integ, max_steps, dt, t);
+
+	state = sys2.get_state();
+	for (std::size_t i = 0; i < state.p.size(); ++i)
+	{
+		auto pop = sys2.get_pop(i);
+		std::cout << pop[tqs_P] << ": " << state.p[i] << '\n';
+	}
+	std::cout << "t = " << state.t << '\n';
+
+	// sQSSA
+	sqssa_cme sys3(kM, kcat, ET, ST);
+	sys3.simulate(integ, max_steps, dt, t);
+
+	state = sys3.get_state();
+	for (std::size_t i = 0; i < state.p.size(); ++i)
+	{
+		auto pop = sys3.get_pop(i);
+		std::cout << pop[sqs_P] << ": " << state.p[i] << '\n';
+	}
+	std::cout << "t = " << state.t << '\n';
 
 	return 0;
 }

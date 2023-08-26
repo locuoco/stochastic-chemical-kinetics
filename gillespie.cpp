@@ -36,7 +36,7 @@ void test_tqssa_prod()
 	double P1 = 0, P2 = 0;
 
 	ekinetics_gillespie sys1({kf, kb, kcat}, ET, ST);
-	tqssa_gillespie sys2(kcat, kM, ET, ST);
+	tqssa_gillespie sys2(kM, kcat, ET, ST);
 
 	for (std::size_t i = 0; i < n; ++i)
 	{
@@ -72,7 +72,7 @@ void test_tqssa_completion()
 	double t1 = 0, t2 = 0;
 
 	ekinetics_gillespie sys1({kf, kb, kcat}, ET, ST);
-	tqssa_gillespie sys2(kcat, kM, ET, ST);
+	tqssa_gillespie sys2(kM, kcat, ET, ST);
 
 	for (std::size_t i = 0; i < n; ++i)
 	{

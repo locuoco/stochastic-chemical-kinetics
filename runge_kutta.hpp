@@ -77,7 +77,7 @@ struct euler : runge_kutta<1, T>
 	{}
 };
 
-euler() -> euler<double>;
+euler() -> euler<>;
 
 template <std::floating_point T = double>
 struct rk2 : runge_kutta<2, T>
@@ -94,7 +94,7 @@ struct rk2 : runge_kutta<2, T>
 	{}
 };
 
-rk2(long double) -> rk2<double>;
+rk2(long double) -> rk2<>;
 
 template <std::floating_point T = double>
 struct midpoint : rk2<T>
@@ -104,7 +104,7 @@ struct midpoint : rk2<T>
 	{}
 };
 
-midpoint() -> midpoint<double>;
+midpoint() -> midpoint<>;
 
 template <std::floating_point T = double>
 struct heun2 : rk2<T>
@@ -114,7 +114,7 @@ struct heun2 : rk2<T>
 	{}
 };
 
-heun2() -> heun2<double>;
+heun2() -> heun2<>;
 
 template <std::floating_point T = double>
 struct ralston2 : rk2<T>
@@ -124,7 +124,7 @@ struct ralston2 : rk2<T>
 	{}
 };
 
-ralston2() -> ralston2<double>;
+ralston2() -> ralston2<>;
 
 template <std::floating_point T = double>
 struct rk4 : runge_kutta<4, T>
@@ -140,7 +140,7 @@ struct rk4 : runge_kutta<4, T>
 	{}
 };
 
-rk4() -> rk4<double>;
+rk4() -> rk4<>;
 
 template <std::floating_point T = double>
 struct rk4_3_8 : runge_kutta<4, T>
@@ -156,7 +156,7 @@ struct rk4_3_8 : runge_kutta<4, T>
 	{}
 };
 
-rk4_3_8() -> rk4_3_8<double>;
+rk4_3_8() -> rk4_3_8<>;
 
 template <std::floating_point T = double>
 struct ralston4 : runge_kutta<4, T>
@@ -172,7 +172,7 @@ struct ralston4 : runge_kutta<4, T>
 	{}
 };
 
-ralston4() -> ralston4<double>;
+ralston4() -> ralston4<>;
 
 template <std::floating_point T = double>
 struct butcher6 : runge_kutta<7, T>
@@ -191,7 +191,7 @@ struct butcher6 : runge_kutta<7, T>
 	{}
 };
 
-butcher6() -> butcher6<double>;
+butcher6() -> butcher6<>;
 
 template <std::floating_point T = double>
 struct verner8 : runge_kutta<11, T>
@@ -219,7 +219,7 @@ struct verner8 : runge_kutta<11, T>
 		static constexpr long double s21 = 4.582575694955840006588047193728L; // sqrt(21)
 };
 
-verner8() -> verner8<double>;
+verner8() -> verner8<>;
 
 #endif // SEK_RUNGE_KUTTA
 

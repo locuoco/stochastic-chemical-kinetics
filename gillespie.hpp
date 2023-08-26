@@ -37,7 +37,7 @@ struct gillespie_state
 };
 
 // template argument deduction guide
-gillespie_state() -> gillespie_state<double>;
+gillespie_state() -> gillespie_state<>;
 
 template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 requires (N_r > 0 && N_s > 0)
@@ -165,7 +165,7 @@ public:
 	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, long long ET, long long ST) noexcept
 		: kappa(kappa), ET(ET), ST(ST)
 	// constructor
-	//	kappa: the set of the three rate constants associated to the three reactions
+	//	kappa: the set of the three rate constants associated to the three reactions (f, b, cat)
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
@@ -212,11 +212,11 @@ public:
 	T kcat, kM;
 	long long ET, ST;
 
-	tqssa_gillespie(T kcat, T kM, long long ET, long long ST) noexcept
+	tqssa_gillespie(T kM, T kcat, long long ET, long long ST) noexcept
 		: kcat(kcat), kM(kM), ET(ET), ST(ST)
 	// constructor
-	//	kcat: catalysis rate constant
 	//	kM: Michaelis-Menten constant ( (kb+kcat) / kf )
+	//	kcat: catalysis rate constant
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
@@ -249,9 +249,6 @@ public:
 	}
 };
 
-enum sqssa_substance : std::size_t {sqs_P, sqs_N};
-// sQSSA substances
-
 template <std::floating_point T = double>
 class sqssa_gillespie : public gillespie<1, 1, T>
 // Gillespie algorithm applied to sQSSA (standard quasi-steady state approximation)
@@ -269,11 +266,11 @@ public:
 	T kcat, kM;
 	long long ET, ST;
 
-	sqssa_gillespie(T kcat, T kM, long long ET, long long ST) noexcept
+	sqssa_gillespie(T kM, T kcat, long long ET, long long ST) noexcept
 		: kcat(kcat), kM(kM), ET(ET), ST(ST)
 	// constructor
-	//	kcat: catalysis rate constant
 	//	kM: Michaelis-Menten constant ( (kb+kcat) / kf )
+	//	kcat: catalysis rate constant
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
@@ -294,7 +291,7 @@ public:
 		{
 			case 0:
 			{
-				long long S = ST - x[tqs_P];
+				long long S = ST - x[sqs_P];
 				return kcat*(ET*S) / (S + kM);
 			}
 			default:
