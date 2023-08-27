@@ -22,7 +22,7 @@
 #include <concepts> // floating_point
 #include <functional> // function
 #include <stdexcept> // domain_error, out_of_range
-#include <string>
+#include <string> // string, to_string
 #include <vector>
 #include <array>
 #include <cmath> // log, sqrt
@@ -179,7 +179,7 @@ public:
 	//	i: reaction channel index
 	{
 		if (x[eks_C] > ET || x[eks_C] + x[eks_P] > ST)
-			throw std::domain_error(std::string("Current state ")
+			throw std::domain_error("Current state "
 				+ std::to_string(x[eks_C]) + ", " + std::to_string(x[eks_P])
 				+ " is incompatible with constants of motion.");
 		switch (i)
@@ -191,7 +191,7 @@ public:
 			case ekrc_cat:
 				return kappa[ekrc_cat] * x[eks_C];
 			default:
-				throw std::out_of_range("Reaction channel index out of bounds");
+				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
 	}
 };
@@ -230,7 +230,7 @@ public:
 		using std::sqrt;
 
 		if (x[tqs_P] > ST)
-			throw std::domain_error(std::string("Current state ")
+			throw std::domain_error("Current state "
 				+ std::to_string(x[tqs_P])
 				+ " is incompatible with constants of motion.");
 		switch (i)
@@ -244,7 +244,7 @@ public:
 				return kcat*c / (b + sqrt(Delta));
 			}
 			default:
-				throw std::out_of_range("Reaction channel index out of bounds");
+				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
 	}
 };
@@ -284,7 +284,7 @@ public:
 		using std::sqrt;
 
 		if (x[sqs_P] > ST)
-			throw std::domain_error(std::string("Current state ")
+			throw std::domain_error("Current state "
 				+ std::to_string(x[sqs_P])
 				+ " is incompatible with constants of motion.");
 		switch (i)
@@ -295,7 +295,7 @@ public:
 				return kcat*(ET*S) / (S + kM);
 			}
 			default:
-				throw std::out_of_range("Reaction channel index out of bounds");
+				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
 	}
 };

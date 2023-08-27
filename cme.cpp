@@ -27,17 +27,23 @@ g++ cme.cpp -o cme -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=1
 #include "runge_kutta.hpp"
 #include "cme.hpp"
 
+void test_cme_tqssa()
+// TODO
+{
+
+}
+
 int main()
 {
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
-	double t = 1, dt = 1e-4, max_steps = 200'000;
+	double t = 1, dt = 1e-4;
 
 	rk4_3_8 integ;
 
 	// Full model
 	ekinetics_cme system({kf, kb, kcat}, ET, ST);
-	system.simulate(integ, max_steps, dt, t);
+	system.simulate(integ, dt, t);
 
 	auto state = system.get_state();
 	for (std::size_t i = 0; i < state.p.size(); ++i)
@@ -49,7 +55,7 @@ int main()
 
 	// tQSSA
 	tqssa_cme sys2(kM, kcat, ET, ST);
-	sys2.simulate(integ, max_steps, dt, t);
+	sys2.simulate(integ, dt, t);
 
 	state = sys2.get_state();
 	for (std::size_t i = 0; i < state.p.size(); ++i)
@@ -61,7 +67,7 @@ int main()
 
 	// sQSSA
 	sqssa_cme sys3(kM, kcat, ET, ST);
-	sys3.simulate(integ, max_steps, dt, t);
+	sys3.simulate(integ, dt, t);
 
 	state = sys3.get_state();
 	for (std::size_t i = 0; i < state.p.size(); ++i)

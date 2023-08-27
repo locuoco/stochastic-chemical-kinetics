@@ -26,9 +26,11 @@ g++ gillespie.cpp -o gillespie -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-e
 
 #include "gillespie.hpp"
 
-void test_tqssa_prod()
-// Test for a specific combination of parameters that tQSSA agrees with the exact formulation.
-// The test passes if the average products population at a certain time agree within 1% relative error
+void test_gillespie_tqssa_prod()
+// Test for a specific combination of parameters that tQSSA agrees
+// with the exact formulation using Gillespie algorithm.
+// The test passes if the average products population at a certain
+// time agree within 1% relative error
 {
 	std::size_t n = 10'000, max_steps = 1'000, t = 2;
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
@@ -62,8 +64,9 @@ void test_tqssa_prod()
 	assert((P1 - P2) / P1 < .01); // not more than 1% relative error
 }
 
-void test_tqssa_completion()
-// Test for a specific combination of parameters that tQSSA agrees with the exact formulation.
+void test_gillespie_tqssa_completion()
+// Test for a specific combination of parameters that tQSSA agrees
+// with the exact formulation using Gillespie algorithm.
 // The test passes if completion times agree within 2% relative error
 {
 	std::size_t n = 10'000, max_steps = 1'000;
@@ -100,8 +103,8 @@ void test_tqssa_completion()
 
 int main()
 {
-	test_tqssa_prod();
-	test_tqssa_completion();
+	test_gillespie_tqssa_prod();
+	test_gillespie_tqssa_completion();
 
 	return 0;
 }

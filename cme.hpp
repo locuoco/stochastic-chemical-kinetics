@@ -24,6 +24,7 @@
 #include <algorithm> // max, min
 #include <vector>
 #include <cmath> // sqrt
+#include <string>
 
 #include "common.hpp"
 #include "tensor.hpp"
@@ -75,12 +76,12 @@ public:
 	cme(const physics::vec<long long, N_s>& n_max)
 		: n_max(n_max)
 	// constructor
-	//	n_max: max population numbers
+	//	n_max: max population numbers (we must consider a finite number of possible states to make the problem computable)
 	//	dt: integration time step
 	{
 		for (std::size_t i = 0; i < N_s; ++i)
 			if (n_max[i] <= 0)
-				throw std::out_of_range("The maximum population numbers must be greater than 0");
+				throw std::out_of_range("The maximum population numbers must be greater than 0.");
 		p.resize(n_elems(), 0);
 		dp.resize(n_elems());
 		p[0] = 1;
@@ -111,10 +112,15 @@ public:
 
 	template <typename Integ>
 	void step(Integ& integ, T dt)
+	// a single step integrating the chemical master equation
+	//	integ: integrator
+	//	dt: integration time step
 	{
 		using std::size_t;
 
 		auto f = [this](const std::valarray<T>& p) -> const std::valarray<T>&
+		// this lambda function calculates the time derivative of the probabilities
+		// associated to each possible state, as dictated by the CME.
 		{
 			size_t n = n_elems();
 			x = 0;
@@ -143,38 +149,65 @@ public:
 	}
 
 	template <typename Integ>
-	void simulate(Integ& integ, std::size_t n, T dt, T t_final = 0)
-	// simulate for n steps or until t >= t_final
-	// set t_final to 0 or negative number for infinity
+	[[maybe_unused]] std::size_t simulate(Integ& integ, T dt, T t_final)
+	// simulate until t >= t_final
+	// return the number of steps
 	{
-		for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
+		std::size_t i;
+		for (i = 0; t <= t_final; ++i)
 			step(integ, dt);
+		return i;
 	}
 
 	template <typename Integ>
-	void simulate(Integ& integ, std::vector<cme_state<T>>& states, std::size_t n, T dt, T t_final = 0, bool b_initial = true)
-	// simulate for n steps or until t >= t_final, and save the states inside a list (final state is always included)
-	// set t_final to 0 or negative number for infinity
+	[[maybe_unused]] std::size_t simulate(Integ& integ, std::vector<cme_state<T>>& states, T dt, T t_final, bool b_initial = true)
+	// simulate until t >= t_final, and save the states inside a list (final state is always included)
 	// set b_initial to false if the initial state should not be included (default is true)
+	// return the number of steps
 	{
 		if (b_initial)
 			states.push_back({p, t});
-		for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
+		std::size_t i;
+		for (i = 0; t <= t_final; ++i)
 		{
 			step(integ, dt);
 			states.push_back({p, t});
 		}
+		return i;
 	}
 
 	cme_state<T> get_state() const noexcept
+	// return the current state
 	{
 		return {p, t};
 	}
 
-	virtual T a(const physics::vec<long long, N_s>& y, std::size_t i) const = 0;
+	T average(std::size_t s_i) const
+	// return the average of the i-th variable (substance)
+	{
+		if (s_i >= N_s)
+			throw std::out_of_range("Unknown substance with index " + std::to_string(s_i) + ".");
+		size_t n = n_elems();
+		T ave = 0;
+		x = 0;
+		for (size_t pop_i = 0; pop_i < n; ++pop_i)
+		{
+			ave += p[pop_i] * x[s_i];
+			++x[N_s-1];
+			for (size_t j = N_s; j --> 1; )
+				if (x[j] == n_max[j])
+				{
+					x[j] = 0;
+					++x[j-1];
+				}
+		}
+		return ave;
+	}
+
+	virtual T a(const physics::vec<long long, N_s>& y, std::size_t r_i) const = 0;
 	// propensity functions
 	//	y: population numbers
-	//	i: reaction channel index
+	//	r_i: reaction channel index
 };
 
 template <std::floating_point T = double>
@@ -218,7 +251,7 @@ public:
 			case ekrc_cat:
 				return kappa[ekrc_cat] * y[eks_C];
 			default:
-				throw std::out_of_range("Reaction channel index out of bounds");
+				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
 	}
 };
@@ -265,7 +298,7 @@ public:
 				return kcat*c / (b + sqrt(Delta));
 			}
 			default:
-				throw std::out_of_range("Reaction channel index out of bounds");
+				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
 	}
 };
@@ -309,7 +342,7 @@ public:
 				return kcat*(ET*S) / (S + kM);
 			}
 			default:
-				throw std::out_of_range("Reaction channel index out of bounds");
+				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
 	}
 };
