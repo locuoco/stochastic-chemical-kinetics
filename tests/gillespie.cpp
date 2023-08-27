@@ -17,14 +17,15 @@
 /*
 
 Compilation (GCC/MinGW):
-g++ gillespie.cpp -o gillespie -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=1
+g++ tests/gillespie.cpp -o gillespie -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=1
 
 */
 
 #include <iostream> // cout
 #include <cassert>
+#include <cmath> // fabs
 
-#include "gillespie.hpp"
+#include "../gillespie.hpp"
 
 void test_gillespie_tqssa_prod()
 // Test for a specific combination of parameters that tQSSA agrees
@@ -32,6 +33,8 @@ void test_gillespie_tqssa_prod()
 // The test passes if the average products population at a certain
 // time agree within 1% relative error
 {
+	using std::fabs;
+
 	std::size_t n = 10'000, max_steps = 1'000, t = 2;
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
@@ -61,7 +64,7 @@ void test_gillespie_tqssa_prod()
 	std::cout << P1 << '\n';
 	std::cout << P2 << '\n';
 
-	assert((P1 - P2) / P1 < .01); // not more than 1% relative error
+	assert(fabs(P1 - P2) / P1 < .01); // not more than 1% relative error
 }
 
 void test_gillespie_tqssa_completion()
@@ -69,6 +72,8 @@ void test_gillespie_tqssa_completion()
 // with the exact formulation using Gillespie algorithm.
 // The test passes if completion times agree within 2% relative error
 {
+	using std::fabs;
+
 	std::size_t n = 10'000, max_steps = 1'000;
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
@@ -98,7 +103,7 @@ void test_gillespie_tqssa_completion()
 	std::cout << t1 << '\n';
 	std::cout << t2 << '\n';
 
-	assert((t1 - t2) / t1 < .02); // not more than 2% relative error
+	assert(fabs(t1 - t2) / t1 < .02); // not more than 2% relative error
 }
 
 int main()

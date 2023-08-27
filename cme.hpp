@@ -47,9 +47,14 @@ requires (N_r > 0 && N_s > 0)
 class cme
 // General chemical master equation (CME) solver
 {
-	physics::vec<long long, N_s> n_max, x;
+	static constexpr std::size_t moments_max_order = 3;
+
+	physics::vec<long long, N_s> n_max;
+	mutable physics::vec<long long, N_s> x;
+	mutable std::array<std::array<T, moments_max_order+1>, N_s> m;
 	std::valarray<T> p, dp;
 	T t;
+	mutable bool calculated_stats = false;
 
 	long long n_elems() const noexcept
 	{
@@ -65,6 +70,42 @@ class cme
 			if (y[i] < 0 || y[i] >= n_max[i])
 				return true;
 		return false;
+	}
+
+	void calc_moments() const noexcept
+	// compute moments up to prefixed order
+	{
+		if (calculated_stats)
+			return;
+		using std::size_t;
+		size_t n = n_elems();
+		for (size_t j = 0; j < N_s; ++j)
+		{
+			m[j][0] = 1;
+			for (size_t i = 1; i <= moments_max_order; ++i)
+				m[j][i] = 0;
+		}
+		x = 0;
+		for (size_t pop_i = 0; pop_i < n; ++pop_i)
+		{
+			for (size_t j = 0; j < N_s; ++j)
+			{
+				long long xn = 1;
+				for (size_t i = 1; i <= moments_max_order; ++i)
+				{
+					xn *= x[j];
+					m[j][i] += p[pop_i] * xn;
+				}
+			}
+			++x[N_s-1];
+			for (size_t j = N_s; j --> 1; )
+				if (x[j] == n_max[j])
+				{
+					x[j] = 0;
+					++x[j-1];
+				}
+		}
+		calculated_stats = true;
 	}
 
 protected:
@@ -117,6 +158,8 @@ public:
 	//	dt: integration time step
 	{
 		using std::size_t;
+
+		calculated_stats = false;
 
 		auto f = [this](const std::valarray<T>& p) -> const std::valarray<T>&
 		// this lambda function calculates the time derivative of the probabilities
@@ -182,17 +225,51 @@ public:
 		return {p, t};
 	}
 
-	T average(std::size_t s_i) const
-	// return the average of the i-th variable (substance)
+	T mean(std::size_t s_i) const
+	// return the mean of the s_i-th variable (substance)
 	{
 		if (s_i >= N_s)
 			throw std::out_of_range("Unknown substance with index " + std::to_string(s_i) + ".");
-		size_t n = n_elems();
-		T ave = 0;
-		x = 0;
-		for (size_t pop_i = 0; pop_i < n; ++pop_i)
+		calc_moments();
+		return m[s_i][1];
+	}
+
+	T msq(std::size_t s_i) const
+	// return the mean square of the s_i-th variable (substance)
+	{
+		if (s_i >= N_s)
+			throw std::out_of_range("Unknown substance with index " + std::to_string(s_i) + ".");
+		calc_moments();
+		return m[s_i][2];
+	}
+
+	T sd(std::size_t s_i) const
+	{
+		using std::sqrt;
+		if (s_i >= N_s)
+			throw std::out_of_range("Unknown substance with index " + std::to_string(s_i) + ".");
+		calc_moments();
+		T arg = m[s_i][2] - m[s_i][1]*m[s_i][1];
+		return arg > 0 ? sqrt(arg) : 0;
+	}
+
+	T nth_moment(std::size_t s_i, std::size_t n) const
+	// return the n-th moment of the s_i-th variable (substance)
+	{
+		using std::pow;
+		if (s_i >= N_s)
+			throw std::out_of_range("Unknown substance with index " + std::to_string(s_i) + ".");
+		if (n <= moments_max_order)
 		{
-			ave += p[pop_i] * x[s_i];
+			calc_moments();
+			return m[s_i][n];
+		}
+		size_t n_ = n_elems();
+		T mom = 0;
+		x = 0;
+		for (size_t pop_i = 0; pop_i < n_; ++pop_i)
+		{
+			mom += p[pop_i] * pow(x[s_i], n);
 			++x[N_s-1];
 			for (size_t j = N_s; j --> 1; )
 				if (x[j] == n_max[j])
@@ -201,7 +278,7 @@ public:
 					++x[j-1];
 				}
 		}
-		return ave;
+		return mom;
 	}
 
 	virtual T a(const physics::vec<long long, N_s>& y, std::size_t r_i) const = 0;
