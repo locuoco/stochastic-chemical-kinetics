@@ -288,45 +288,45 @@ public:
 };
 
 template <std::floating_point T = double>
-class ekinetics_cme : public cme<eks_N, ekrc_N, T>
-// Chemical master equation applied to enzyme kinetics
+class ssek_cme : public cme<sss_N, ssrc_N, T>
+// Chemical master equation applied to single-substrate enzyme kinetics
 {
-	using base = cme<eks_N, ekrc_N, T>;
+	using base = cme<sss_N, ssrc_N, T>;
 
 	using base::nu;
 
 public:
 
-	std::array<T, ekrc_N> kappa;
+	std::array<T, ssrc_N> kappa;
 	long long ET, ST;
 
-	ekinetics_cme(const std::array<T, ekrc_N>& kappa, long long ET, long long ST) noexcept
+	ssek_cme(const std::array<T, ssrc_N>& kappa, long long ET, long long ST) noexcept
 		: base({ET+1, ST+1}), kappa(kappa), ET(ET), ST(ST)
 	// constructor
 	//	kappa: the set of the three rate constants associated to the three reactions (f, b, cat)
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
-		nu[ekrc_f] = {1, 0};
-		nu[ekrc_b] = {-1, 0};
-		nu[ekrc_cat] = {-1, 1};
+		nu[ssrc_f] = {1, 0};
+		nu[ssrc_b] = {-1, 0};
+		nu[ssrc_cat] = {-1, 1};
 	}
 
-	T a(const physics::vec<long long, eks_N>& y, std::size_t i) const final override
+	T a(const physics::vec<long long, sss_N>& y, std::size_t i) const final override
 	// propensity functions
 	//	y: population numbers
 	//	i: reaction channel index
 	{
-		if (y[eks_C] + y[eks_P] > ST)
+		if (y[sss_C] + y[sss_P] > ST)
 			return 0;
 		switch (i)
 		{
-			case ekrc_f:
-				return kappa[ekrc_f] * ((ET - y[eks_C]) * (ST - y[eks_C] - y[eks_P]));
-			case ekrc_b:
-				return kappa[ekrc_b] * y[eks_C];
-			case ekrc_cat:
-				return kappa[ekrc_cat] * y[eks_C];
+			case ssrc_f:
+				return kappa[ssrc_f] * ((ET - y[sss_C]) * (ST - y[sss_C] - y[sss_P]));
+			case ssrc_b:
+				return kappa[ssrc_b] * y[sss_C];
+			case ssrc_cat:
+				return kappa[ssrc_cat] * y[sss_C];
 			default:
 				throw std::out_of_range("Reaction channel index out of bounds.");
 		}

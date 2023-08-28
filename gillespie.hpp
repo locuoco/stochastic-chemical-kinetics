@@ -147,10 +147,10 @@ public:
 };
 
 template <std::floating_point T = double>
-class ekinetics_gillespie : public gillespie<eks_N, ekrc_N, T>
-// Gillespie algorithm applied to enzyme kinetics
+class ssek_gillespie : public gillespie<sss_N, ssrc_N, T>
+// Gillespie algorithm applied to single-substrate enzyme kinetics
 {
-	using base = gillespie<eks_N, ekrc_N, T>;
+	using base = gillespie<sss_N, ssrc_N, T>;
 
 	using base::nu;
 
@@ -159,37 +159,37 @@ public:
 	using base::x;
 	using base::t;
 
-	std::array<T, ekrc_N> kappa;
+	std::array<T, ssrc_N> kappa;
 	long long ET, ST;
 
-	ekinetics_gillespie(const std::array<T, ekrc_N>& kappa, long long ET, long long ST) noexcept
+	ssek_gillespie(const std::array<T, ssrc_N>& kappa, long long ET, long long ST) noexcept
 		: kappa(kappa), ET(ET), ST(ST)
 	// constructor
 	//	kappa: the set of the three rate constants associated to the three reactions (f, b, cat)
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
-		nu[ekrc_f] = {1, 0};
-		nu[ekrc_b] = {-1, 0};
-		nu[ekrc_cat] = {-1, 1};
+		nu[ssrc_f] = {1, 0};
+		nu[ssrc_b] = {-1, 0};
+		nu[ssrc_cat] = {-1, 1};
 	}
 
 	T a(std::size_t i) const final override
 	// propensity functions
 	//	i: reaction channel index
 	{
-		if (x[eks_C] > ET || x[eks_C] + x[eks_P] > ST)
+		if (x[sss_C] > ET || x[sss_C] + x[sss_P] > ST)
 			throw std::domain_error("Current state "
-				+ std::to_string(x[eks_C]) + ", " + std::to_string(x[eks_P])
+				+ std::to_string(x[sss_C]) + ", " + std::to_string(x[sss_P])
 				+ " is incompatible with constants of motion.");
 		switch (i)
 		{
-			case ekrc_f:
-				return kappa[ekrc_f] * ((ET - x[eks_C]) * (ST - x[eks_C] - x[eks_P]));
-			case ekrc_b:
-				return kappa[ekrc_b] * x[eks_C];
-			case ekrc_cat:
-				return kappa[ekrc_cat] * x[eks_C];
+			case ssrc_f:
+				return kappa[ssrc_f] * ((ET - x[sss_C]) * (ST - x[sss_C] - x[sss_P]));
+			case ssrc_b:
+				return kappa[ssrc_b] * x[sss_C];
+			case ssrc_cat:
+				return kappa[ssrc_cat] * x[sss_C];
 			default:
 				throw std::out_of_range("Reaction channel index out of bounds.");
 		}

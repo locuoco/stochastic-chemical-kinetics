@@ -17,11 +17,11 @@
 #ifndef SEK_COMMON
 #define SEK_COMMON
 
-enum enzyme_kinetics_substance : std::size_t {eks_C, eks_P, eks_N};
-// enzyme kinetics substances
+enum ssek_substance : std::size_t {sss_C, sss_P, sss_N};
+// single-substrate enzyme kinetics substances
 
-enum enzyme_kinetics_reaction_channel : std::size_t {ekrc_f, ekrc_b, ekrc_cat, ekrc_N};
-// enzyme kinetics reaction channels
+enum ssek_reaction_channel : std::size_t {ssrc_f, ssrc_b, ssrc_cat, ssrc_N};
+// single-substrate enzyme kinetics reaction channels
 
 enum tqssa_substance : std::size_t {tqs_P, tqs_N};
 // tQSSA substances

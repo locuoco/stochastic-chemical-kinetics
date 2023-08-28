@@ -43,8 +43,8 @@ void test_cme_tqssa()
 	rk4_3_8 integ; // 4-th order Runge-Kutta integrator
 
 	// Full model
-	ekinetics_cme sys_ek({kf, kb, kcat}, ET, ST);
-	sys_ek.simulate(integ, dt, t);
+	ssek_cme sys_ss({kf, kb, kcat}, ET, ST);
+	sys_ss.simulate(integ, dt, t);
 
 	// tQSSA
 	tqssa_cme sys_tq(kM, kcat, ET, ST);
@@ -54,15 +54,15 @@ void test_cme_tqssa()
 	sqssa_cme sys_sq(kM, kcat, ET, ST);
 	sys_sq.simulate(integ, dt, t);
 
-	double ek_mean_prod = sys_ek.mean(eks_P);
+	double ss_mean_prod = sys_ss.mean(sss_P);
 	double tq_mean_prod = sys_tq.mean(tqs_P);
 	double sq_mean_prod = sys_sq.mean(sqs_P);
 
-	std::cout << "ek: " << ek_mean_prod << " +/- " << sys_ek.sd(eks_P) << '\n';
+	std::cout << "ek: " << ss_mean_prod << " +/- " << sys_ss.sd(sss_P) << '\n';
 	std::cout << "tq: " << tq_mean_prod << " +/- " << sys_tq.sd(tqs_P) << '\n';
 	std::cout << "sq: " << sq_mean_prod << " +/- " << sys_sq.sd(sqs_P) << '\n';
 
-	assert(fabs(tq_mean_prod - ek_mean_prod) / ek_mean_prod < .01);
+	assert(fabs(tq_mean_prod - ss_mean_prod) / ss_mean_prod < .01);
 }
 
 int main()
