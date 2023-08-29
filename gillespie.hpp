@@ -169,8 +169,10 @@ public:
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
-		nu[ssrc_f] = {1, 0};
-		nu[ssrc_b] = {-1, 0};
+		// stoichiometric vectors
+		//               C, P
+		nu[ssrc_f]   = { 1, 0};
+		nu[ssrc_b]   = {-1, 0};
 		nu[ssrc_cat] = {-1, 1};
 	}
 
@@ -220,6 +222,8 @@ public:
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
+		// stoichiometric vectors
+		//       P
 		nu[0] = {1};
 	}
 
@@ -274,6 +278,8 @@ public:
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
+		// stoichiometric vectors
+		//       P
 		nu[0] = {1};
 	}
 
@@ -294,6 +300,182 @@ public:
 				long long S = ST - x[sqs_P];
 				return kcat*(ET*S) / (S + kM);
 			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds.");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class gks_gillespie : public gillespie<gks_N, gkrc_N, T>
+// Gillespie algorithm applied to Goldbeter-Koshland switch
+{
+	using base = gillespie<gks_N, gkrc_N, T>;
+
+	using base::nu;
+
+public:
+
+	using base::x;
+	using base::t;
+
+	std::array<T, gkrc_N> kappa;
+	long long ET, DT, ST;
+
+	gks_gillespie(const std::array<T, gkrc_N>& kappa, long long ET, long long DT, long long ST) noexcept
+		: kappa(kappa), ET(ET), DT(DT), ST(ST)
+	// constructor
+	//	kappa: the set of the six rate constants associated to the six reactions
+	//	ET: total kinase concentration constant (it is conserved)
+	//	DT: total phosphatase concentration constant (it is conserved)
+	//	ST: total substrate concentration constant (it is conserved)
+	{
+		// stoichiometric vectors
+		//             SP,  C, CP
+		nu[gkrc_fe] = { 0,  1,  0};
+		nu[gkrc_be] = { 0, -1,  0};
+		nu[gkrc_e]  = { 1, -1,  0};
+		nu[gkrc_fd] = {-1,  0,  1};
+		nu[gkrc_bd] = { 1,  0, -1};
+		nu[gkrc_d]  = { 0,  0, -1};
+	}
+
+	T a(std::size_t i) const final override
+	// propensity functions
+	//	i: reaction channel index
+	{
+		if (x[gks_C] > ET || x[gks_CP] > DT || x[gks_SP] + x[gks_C] + x[gks_CP] > ST)
+			throw std::domain_error("Current state "
+				+ std::to_string(x[gks_SP]) + ", " + std::to_string(x[gks_C]) + ", " + std::to_string(x[gks_CP])
+				+ " is incompatible with constants of motion.");
+		switch (i)
+		{
+			case gkrc_fe:
+				return kappa[gkrc_fe] * ((ET - x[gks_C]) * (ST - x[gks_SP] - x[gks_C] - x[gks_CP]));
+			case gkrc_be:
+				return kappa[gkrc_be] * x[gks_C];
+			case gkrc_e:
+				return kappa[gkrc_e] * x[gks_C];
+			case gkrc_fd:
+				return kappa[gkrc_fd] * ((DT - x[gks_CP]) * x[gks_SP]);
+			case gkrc_bd:
+				return kappa[gkrc_bd] * x[gks_CP];
+			case gkrc_d:
+				return kappa[gkrc_d] * x[gks_CP];
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds.");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class gktq_gillespie : public gillespie<gts_N, gtrc_N, T>
+// Gillespie algorithm applied to Goldbeter-Koshland switch tQSSA
+{
+	using base = gillespie<gts_N, gtrc_N, T>;
+
+	using base::nu;
+
+public:
+
+	using base::x;
+	using base::t;
+
+	T kME, ke, kMD, kd;
+	long long ET, DT, ST;
+
+	gktq_gillespie(T kME, T ke, T kMD, T kd, long long ET, long long DT, long long ST) noexcept
+		: kME(kME), ke(ke), kMD(kMD), kd(kd), ET(ET), DT(DT), ST(ST)
+	// constructor
+	//	kME, ke: phosphorylation constants (Michaelis-Menten + catalysis)
+	//	kMD, kd: dephosphorylation constants (Michaelis-Menten + catalysis)
+	//	ET: total kinase concentration constant (it is conserved)
+	//	DT: total phosphatase concentration constant (it is conserved)
+	//	ST: total substrate concentration constant (it is conserved)
+	{
+		// stoichiometric vectors
+		//           SP_hat
+		nu[gtrc_e]  = { 1};
+		nu[gtrc_d]  = {-1};
+	}
+
+	T a(std::size_t i) const final override
+	// propensity functions
+	//	i: reaction channel index
+	{
+		if (x[gts_SP_hat] > ST)
+			throw std::domain_error("Current state "
+				+ std::to_string(x[gts_SP_hat])
+				+ " is incompatible with constants of motion.");
+		switch (i)
+		{
+			case gtrc_e:
+			{
+				long long S_hat = ST - x[gts_SP_hat];
+				long long c = 2*ET*S_hat;
+				T b = ET + S_hat + kME;
+				T Delta = b*b - 2*c;
+				return ke*c / (b + sqrt(Delta));
+			}
+			case gtrc_d:
+			{
+				long long c = 2*DT*x[gts_SP_hat];
+				T b = DT + x[gts_SP_hat] + kMD;
+				T Delta = b*b - 2*c;
+				return kd*c / (b + sqrt(Delta));
+			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds.");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class gksq_gillespie : public gillespie<gss_N, gsrc_N, T>
+// Gillespie algorithm applied to Goldbeter-Koshland switch sQSSA
+{
+	using base = gillespie<gss_N, gsrc_N, T>;
+
+	using base::nu;
+
+public:
+
+	using base::x;
+	using base::t;
+
+	T kME, ke, kMD, kd;
+	long long ET, DT, ST;
+
+	gksq_gillespie(T kME, T ke, T kMD, T kd, long long ET, long long DT, long long ST) noexcept
+		: kME(kME), ke(ke), kMD(kMD), kd(kd), ET(ET), DT(DT), ST(ST)
+	// constructor
+	//	kME, ke: phosphorylation constants (Michaelis-Menten + catalysis)
+	//	kMD, kd: dephosphorylation constants (Michaelis-Menten + catalysis)
+	//	ET: total kinase concentration constant (it is conserved)
+	//	DT: total phosphatase concentration constant (it is conserved)
+	//	ST: total substrate concentration constant (it is conserved)
+	{
+		// stoichiometric vectors
+		//             SP
+		nu[gsrc_e]  = { 1};
+		nu[gsrc_d]  = {-1};
+	}
+
+	T a(std::size_t i) const final override
+	// propensity functions
+	//	i: reaction channel index
+	{
+		if (x[gss_SP] > ST)
+			throw std::domain_error("Current state "
+				+ std::to_string(x[gss_SP])
+				+ " is incompatible with constants of motion.");
+		switch (i)
+		{
+			case gsrc_e:
+				long long S = ST - x[gss_SP];
+				return ke*(ET*S) / (S + kME);
+			case gkrc_d:
+				return kd*(DT*x[gss_SP]) / (x[gss_SP] + kMD);
 			default:
 				throw std::out_of_range("Reaction channel index out of bounds.");
 		}

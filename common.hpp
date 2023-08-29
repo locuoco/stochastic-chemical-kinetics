@@ -29,4 +29,22 @@ enum tqssa_substance : std::size_t {tqs_P, tqs_N};
 enum sqssa_substance : std::size_t {sqs_P, sqs_N};
 // sQSSA substances
 
+enum gks_substance : std::size_t {gks_SP, gks_C, gks_CP, gks_N};
+// Goldbeter-Koshland switch subtances
+
+enum gks_reaction_channel : std::size_t {gkrc_fe, gkrc_be, gkrc_e, gkrc_fd, gkrc_bd, gkrc_d, gkrc_N};
+// Goldbeter-Koshland switch reaction channels
+
+enum gktq_substance : std::size_t {gts_SP_hat, gts_N};
+// tQSSA Goldbeter-Koshland switch subtances
+
+enum gktq_reaction_channel : std::size_t {gtrc_e, gtrc_d, gtrc_N};
+// tQSSA Goldbeter-Koshland switch reaction channels
+
+enum gksq_substance : std::size_t {gss_SP, gss_N};
+// sQSSA Goldbeter-Koshland switch subtances
+
+enum gksq_reaction_channel : std::size_t {gsrc_e, gsrc_d, gsrc_N};
+// sQSSA Goldbeter-Koshland switch reaction channels
+
 #endif // SEK_COMMON

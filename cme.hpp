@@ -307,8 +307,10 @@ public:
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
-		nu[ssrc_f] = {1, 0};
-		nu[ssrc_b] = {-1, 0};
+		// stoichiometric vectors
+		//               C, P
+		nu[ssrc_f]   = { 1, 0};
+		nu[ssrc_b]   = {-1, 0};
 		nu[ssrc_cat] = {-1, 1};
 	}
 
@@ -354,6 +356,8 @@ public:
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
+		// stoichiometric vectors
+		//       P
 		nu[0] = {1};
 	}
 
@@ -401,6 +405,8 @@ public:
 	//	ET: total enzyme concentration constant (it is conserved)
 	//	ST: total substrate/product concentration constant (it is conserved)
 	{
+		// stoichiometric vectors
+		//       P
 		nu[0] = {1};
 	}
 
@@ -418,6 +424,166 @@ public:
 				long long S = ST - y[sqs_P];
 				return kcat*(ET*S) / (S + kM);
 			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds.");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class gks_cme : public cme<gks_N, gkrc_N, T>
+// Chemical master equation applied to Goldbeter-Koshland switch
+{
+	using base = cme<gks_N, gkrc_N, T>;
+
+	using base::nu;
+
+public:
+
+	std::array<T, gkrc_N> kappa;
+	long long ET, DT, ST;
+
+	gks_cme(const std::array<T, gkrc_N>& kappa, long long ET, long long DT, long long ST) noexcept
+		: base({ST+1, ET+1, DT+1}), kappa(kappa), ET(ET), DT(DT), ST(ST)
+	// constructor
+	//	kappa: the set of the six rate constants associated to the six reactions
+	//	ET: total kinase concentration constant (it is conserved)
+	//	DT: total phosphatase concentration constant (it is conserved)
+	//	ST: total substrate concentration constant (it is conserved)
+	{
+		// stoichiometric vectors
+		//             SP,  C, CP
+		nu[gkrc_fe] = { 0,  1,  0};
+		nu[gkrc_be] = { 0, -1,  0};
+		nu[gkrc_e]  = { 1, -1,  0};
+		nu[gkrc_fd] = {-1,  0,  1};
+		nu[gkrc_bd] = { 1,  0, -1};
+		nu[gkrc_d]  = { 0,  0, -1};
+	}
+
+	T a(const physics::vec<long long, gks_N>& y, std::size_t i) const final override
+	// propensity functions
+	//	y: population numbers
+	//	i: reaction channel index
+	{
+		if (y[gks_SP] + y[gks_C] + y[gks_CP] > ST)
+			return 0;
+		switch (i)
+		{
+			case gkrc_fe:
+				return kappa[gkrc_fe] * ((ET - y[gks_C]) * (ST - y[gks_SP] - y[gks_C] - y[gks_CP]));
+			case gkrc_be:
+				return kappa[gkrc_be] * y[gks_C];
+			case gkrc_e:
+				return kappa[gkrc_e] * y[gks_C];
+			case gkrc_fd:
+				return kappa[gkrc_fd] * ((DT - y[gks_CP]) * y[gks_SP]);
+			case gkrc_bd:
+				return kappa[gkrc_bd] * y[gks_CP];
+			case gkrc_d:
+				return kappa[gkrc_d] * y[gks_CP];
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds.");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class gktq_cme : public cme<gts_N, gtrc_N, T>
+// Chemical master equation applied to Goldbeter-Koshland switch tQSSA
+{
+	using base = cme<gts_N, gtrc_N, T>;
+
+	using base::nu;
+
+public:
+
+	T kME, ke, kMD, kd;
+	long long ET, DT, ST;
+
+	gktq_cme(T kME, T ke, T kMD, T kd, long long ET, long long DT, long long ST) noexcept
+		: base({ST+1}), kME(kME), ke(ke), kMD(kMD), kd(kd), ET(ET), DT(DT), ST(ST)
+	// constructor
+	//	kME, ke: phosphorylation constants (Michaelis-Menten + catalysis)
+	//	kMD, kd: dephosphorylation constants (Michaelis-Menten + catalysis)
+	//	ET: total kinase concentration constant (it is conserved)
+	//	DT: total phosphatase concentration constant (it is conserved)
+	//	ST: total substrate concentration constant (it is conserved)
+	{
+		// stoichiometric vectors
+		//           SP_hat
+		nu[gtrc_e]  = { 1};
+		nu[gtrc_d]  = {-1};
+	}
+
+	T a(const physics::vec<long long, gts_N>& y, std::size_t i) const final override
+	// propensity functions
+	//	y: population numbers
+	//	i: reaction channel index
+	{
+		switch (i)
+		{
+			case gtrc_e:
+			{
+				long long S_hat = ST - y[gts_SP_hat];
+				long long c = 2*ET*S_hat;
+				T b = ET + S_hat + kME;
+				T Delta = b*b - 2*c;
+				return ke*c / (b + sqrt(Delta));
+			}
+			case gtrc_d:
+			{
+				long long c = 2*DT*y[gts_SP_hat];
+				T b = DT + y[gts_SP_hat] + kMD;
+				T Delta = b*b - 2*c;
+				return kd*c / (b + sqrt(Delta));
+			}
+			default:
+				throw std::out_of_range("Reaction channel index out of bounds.");
+		}
+	}
+};
+
+template <std::floating_point T = double>
+class gksq_cme : public cme<gss_N, gsrc_N, T>
+// Chemical master equation applied to Goldbeter-Koshland switch sQSSA
+{
+	using base = cme<gss_N, gsrc_N, T>;
+
+	using base::nu;
+
+public:
+
+	T kME, ke, kMD, kd;
+	long long ET, DT, ST;
+
+	gksq_cme(T kME, T ke, T kMD, T kd, long long ET, long long DT, long long ST) noexcept
+		: base({ST+1}), kME(kME), ke(ke), kMD(kMD), kd(kd), ET(ET), DT(DT), ST(ST)
+	// constructor
+	//	kME, ke: phosphorylation constants (Michaelis-Menten + catalysis)
+	//	kMD, kd: dephosphorylation constants (Michaelis-Menten + catalysis)
+	//	ET: total kinase concentration constant (it is conserved)
+	//	DT: total phosphatase concentration constant (it is conserved)
+	//	ST: total substrate concentration constant (it is conserved)
+	{
+		// stoichiometric vectors
+		//             SP
+		nu[gtrc_e]  = { 1};
+		nu[gtrc_d]  = {-1};
+	}
+
+	T a(const physics::vec<long long, gss_N>& y, std::size_t i) const final override
+	// propensity functions
+	//	y: population numbers
+	//	i: reaction channel index
+	{
+		switch (i)
+		{
+			case gsrc_e:
+				long long S = ST - y[gss_SP];
+				return ke*(ET*S) / (S + kME);
+			case gkrc_d:
+				return kd*(DT*y[gss_SP]) / (y[gss_SP] + kMD);
 			default:
 				throw std::out_of_range("Reaction channel index out of bounds.");
 		}
