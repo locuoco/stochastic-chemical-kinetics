@@ -40,15 +40,15 @@ void test_gillespie_tqssa_prod()
 	long long ET = 10, ST = 9;
 	double P1 = 0, P2 = 0;
 
-	ssek_gillespie sys1({kf, kb, kcat}, ET, ST);
-	tqssa_gillespie sys2(kM, kcat, ET, ST);
+	gillespie::single_substrate sys1(kf, kb, kcat, ET, ST);
+	gillespie::single_substrate_tqssa sys2(kM, kcat, ET, ST);
 
 	for (std::size_t i = 0; i < n; ++i)
 	{
 		sys1.x = 0;
 		sys1.t = 0;
 		sys1.simulate(max_steps, t);
-		P1 += sys1.x[sss_P];
+		P1 += sys1.x[sys1.P];
 	}
 	P1 /= n*ST;
 
@@ -57,7 +57,7 @@ void test_gillespie_tqssa_prod()
 		sys2.x = 0;
 		sys2.t = 0;
 		sys2.simulate(max_steps, t);
-		P2 += sys2.x[tqs_P];
+		P2 += sys2.x[sys2.P];
 	}
 	P2 /= n*ST;
 
@@ -79,8 +79,8 @@ void test_gillespie_tqssa_completion()
 	long long ET = 10, ST = 9;
 	double t1 = 0, t2 = 0;
 
-	ssek_gillespie sys1({kf, kb, kcat}, ET, ST);
-	tqssa_gillespie sys2(kM, kcat, ET, ST);
+	gillespie::single_substrate sys1(kf, kb, kcat, ET, ST);
+	gillespie::single_substrate_tqssa sys2(kM, kcat, ET, ST);
 
 	for (std::size_t i = 0; i < n; ++i)
 	{

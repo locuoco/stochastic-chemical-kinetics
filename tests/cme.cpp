@@ -43,24 +43,24 @@ void test_cme_tqssa()
 	rk4_3_8 integ; // 4-th order Runge-Kutta integrator
 
 	// Full model
-	ssek_cme sys_ss({kf, kb, kcat}, ET, ST);
+	cme::single_substrate sys_ss(kf, kb, kcat, ET, ST);
 	sys_ss.simulate(integ, dt, t);
 
 	// tQSSA
-	tqssa_cme sys_tq(kM, kcat, ET, ST);
+	cme::single_substrate_tqssa sys_tq(kM, kcat, ET, ST);
 	sys_tq.simulate(integ, dt, t);
 
 	// sQSSA
-	sqssa_cme sys_sq(kM, kcat, ET, ST);
+	cme::single_substrate_sqssa sys_sq(kM, kcat, ET, ST);
 	sys_sq.simulate(integ, dt, t);
 
-	double ss_mean_prod = sys_ss.mean(sss_P);
-	double tq_mean_prod = sys_tq.mean(tqs_P);
-	double sq_mean_prod = sys_sq.mean(sqs_P);
+	double ss_mean_prod = sys_ss.mean(sys_ss.P);
+	double tq_mean_prod = sys_tq.mean(sys_tq.P);
+	double sq_mean_prod = sys_sq.mean(sys_sq.P);
 
-	std::cout << "ek: " << ss_mean_prod << " +/- " << sys_ss.sd(sss_P) << '\n';
-	std::cout << "tq: " << tq_mean_prod << " +/- " << sys_tq.sd(tqs_P) << '\n';
-	std::cout << "sq: " << sq_mean_prod << " +/- " << sys_sq.sd(sqs_P) << '\n';
+	std::cout << "ek: " << ss_mean_prod << " +/- " << sys_ss.sd(sys_ss.P) << '\n';
+	std::cout << "tq: " << tq_mean_prod << " +/- " << sys_tq.sd(sys_tq.P) << '\n';
+	std::cout << "sq: " << sq_mean_prod << " +/- " << sys_sq.sd(sys_sq.P) << '\n';
 
 	assert(fabs(tq_mean_prod - ss_mean_prod) / ss_mean_prod < .01);
 }

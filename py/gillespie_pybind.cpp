@@ -16,6 +16,7 @@
 
 /*
 
+Compilation (MinGW):
 g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=1 -DMS_WIN64 -fPIC -IC:\Users\aless\Desktop\myLib\include -IC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\include -LC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\libs gillespie_pybind.cpp -o gillespie.pyd -lPython39
 
 */
@@ -25,45 +26,94 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 #include "../include/sck/gillespie.hpp"
 
+using namespace gillespie;
 namespace py = pybind11;
+
+template <typename Gillespie>
+std::vector<state<>> simulate(Gillespie& self, std::size_t n, double t_final, bool b_initial)
+{
+	std::vector<state<>> states;
+	self.simulate(states, n, t_final, b_initial);
+	return states;
+}
 
 PYBIND11_MODULE(gillespie, m)
 {
-	py::class_<ssek_gillespie<double>>(m, "single_substrate")
-		.def(py::init<const std::array<double, ssrc_N>&, long long, long long>())
-		.def("step", &ssek_gillespie<double>::step, py::arg("t_final") = 0.)
-		.def_readwrite("x", &ssek_gillespie<double>::x)
-		.def_readwrite("t", &ssek_gillespie<double>::t);
+	py::class_<state<>>(m, "state")
+		.def(py::init())
+		.def_readwrite("x", &state<>::x)
+		.def_readwrite("t", &state<>::t);
 
-	py::class_<tqssa_gillespie<double>>(m, "single_substrate_tqssa")
-		.def(py::init<double, double, long long, long long>())
-		.def("step", &tqssa_gillespie<double>::step, py::arg("t_final") = 0.)
-		.def_readwrite("x", &tqssa_gillespie<double>::x)
-		.def_readwrite("t", &tqssa_gillespie<double>::t);
+	py::class_<single_substrate<>>(m, "single_substrate")
+		.def(py::init<double, double, double, long long, long long>(),
+			py::arg("kf"), py::arg("kb"), py::arg("kcat"), py::arg("ET"), py::arg("ST"))
+		.def("step", &single_substrate<>::step, py::arg("t_final") = 0.)
+		.def("simulate",
+			&simulate<single_substrate<>>,
+			py::arg("n_steps"),
+			py::arg("t_final") = 0.,
+			py::arg("b_initial") = true)
+		.def_readwrite("x", &single_substrate<>::x)
+		.def_readwrite("t", &single_substrate<>::t);
 
-	py::class_<sqssa_gillespie<double>>(m, "single_substrate_sqssa")
-		.def(py::init<double, double, long long, long long>())
-		.def("step", &sqssa_gillespie<double>::step, py::arg("t_final") = 0.)
-		.def_readwrite("x", &sqssa_gillespie<double>::x)
-		.def_readwrite("t", &sqssa_gillespie<double>::t);
+	py::class_<single_substrate_tqssa<>>(m, "single_substrate_tqssa")
+		.def(py::init<double, double, long long, long long>(), py::arg("kM"), py::arg("kcat"), py::arg("ET"), py::arg("ST"))
+		.def("step", &single_substrate_tqssa<>::step, py::arg("t_final") = 0.)
+		.def("simulate",
+			&simulate<single_substrate_tqssa<>>,
+			py::arg("n_steps"),
+			py::arg("t_final") = 0.,
+			py::arg("b_initial") = true)
+		.def_readwrite("x", &single_substrate_tqssa<>::x)
+		.def_readwrite("t", &single_substrate_tqssa<>::t);
 
-	py::class_<gks_gillespie<double>>(m, "goldbeter_koshland")
-		.def(py::init<const std::array<double, gkrc_N>&, long long, long long, long long>())
-		.def("step", &gks_gillespie<double>::step, py::arg("t_final") = 0.)
-		.def_readwrite("x", &gks_gillespie<double>::x)
-		.def_readwrite("t", &gks_gillespie<double>::t);
+	py::class_<single_substrate_sqssa<>>(m, "single_substrate_sqssa")
+		.def(py::init<double, double, long long, long long>(), py::arg("kM"), py::arg("kcat"), py::arg("ET"), py::arg("ST"))
+		.def("step", &single_substrate_sqssa<>::step, py::arg("t_final") = 0.)
+		.def("simulate",
+			&simulate<single_substrate_sqssa<>>,
+			py::arg("n_steps"),
+			py::arg("t_final") = 0.,
+			py::arg("b_initial") = true)
+		.def_readwrite("x", &single_substrate_sqssa<>::x)
+		.def_readwrite("t", &single_substrate_sqssa<>::t);
 
-	py::class_<gktq_gillespie<double>>(m, "goldbeter_koshland_tqssa")
-		.def(py::init<double, double, double, double, long long, long long, long long>())
-		.def("step", &gktq_gillespie<double>::step, py::arg("t_final") = 0.)
-		.def_readwrite("x", &gktq_gillespie<double>::x)
-		.def_readwrite("t", &gktq_gillespie<double>::t);
+	py::class_<goldbeter_koshland<>>(m, "goldbeter_koshland")
+		.def(py::init<double, double, double, double, double, double, long long, long long, long long>(),
+			py::arg("kfe"), py::arg("kbe"), py::arg("ke"), py::arg("kfd"), py::arg("kbd"), py::arg("kd"),
+			py::arg("ET"), py::arg("DT"), py::arg("ST"))
+		.def("step", &goldbeter_koshland<>::step, py::arg("t_final") = 0.)
+		.def("simulate",
+			&simulate<goldbeter_koshland<>>,
+			py::arg("n_steps"),
+			py::arg("t_final") = 0.,
+			py::arg("b_initial") = true)
+		.def_readwrite("x", &goldbeter_koshland<>::x)
+		.def_readwrite("t", &goldbeter_koshland<>::t);
 
-	py::class_<gksq_gillespie<double>>(m, "goldbeter_koshland_sqssa")
-		.def(py::init<double, double, double, double, long long, long long, long long>())
-		.def("step", &gksq_gillespie<double>::step, py::arg("t_final") = 0.)
-		.def_readwrite("x", &gksq_gillespie<double>::x)
-		.def_readwrite("t", &gksq_gillespie<double>::t);
+	py::class_<goldbeter_koshland_tqssa<>>(m, "goldbeter_koshland_tqssa")
+		.def(py::init<double, double, double, double, long long, long long, long long>(),
+			py::arg("kME"), py::arg("ke"), py::arg("kMD"), py::arg("kd"), py::arg("ET"), py::arg("DT"), py::arg("ST"))
+		.def("step", &goldbeter_koshland_tqssa<>::step, py::arg("t_final") = 0.)
+		.def("simulate",
+			&simulate<goldbeter_koshland_tqssa<>>,
+			py::arg("n_steps"),
+			py::arg("t_final") = 0.,
+			py::arg("b_initial") = true)
+		.def_readwrite("x", &goldbeter_koshland_tqssa<>::x)
+		.def_readwrite("t", &goldbeter_koshland_tqssa<>::t);
+
+	py::class_<goldbeter_koshland_sqssa<>>(m, "goldbeter_koshland_sqssa")
+		.def(py::init<double, double, double, double, long long, long long, long long>(),
+			py::arg("kME"), py::arg("ke"), py::arg("kMD"), py::arg("kd"), py::arg("ET"), py::arg("DT"), py::arg("ST"))
+		.def("step", &goldbeter_koshland_sqssa<>::step, py::arg("t_final") = 0.)
+		.def("simulate",
+			&simulate<goldbeter_koshland_sqssa<>>,
+			py::arg("n_steps"),
+			py::arg("t_final") = 0.,
+			py::arg("b_initial") = true)
+		.def_readwrite("x", &goldbeter_koshland_sqssa<>::x)
+		.def_readwrite("t", &goldbeter_koshland_sqssa<>::t);
 }
 
 
