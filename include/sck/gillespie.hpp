@@ -472,8 +472,10 @@ public:
 		switch (i)
 		{
 			case gsrc_e:
+			{
 				long long S = ST - x[gss_SP];
 				return ke*(ET*S) / (S + kME);
+			}
 			case gkrc_d:
 				return kd*(DT*x[gss_SP]) / (x[gss_SP] + kMD);
 			default:

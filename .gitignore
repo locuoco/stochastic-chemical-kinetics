@@ -1,8 +1,9 @@
-# Ignore all files without extension, except LICENSE
+# Ignore all files without extension, except LICENSE and Makefile
 *
 !*.*
 !*/
 !LICENSE
+!Makefile
 
 # Temporary/backup files
 *.bak

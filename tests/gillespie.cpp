@@ -25,7 +25,7 @@ g++ tests/gillespie.cpp -o gillespie -std=c++20 -Wall -Wextra -pedantic -Ofast -
 #include <cassert>
 #include <cmath> // fabs
 
-#include "../gillespie.hpp"
+#include "../include/sck/gillespie.hpp"
 
 void test_gillespie_tqssa_prod()
 // Test for a specific combination of parameters that tQSSA agrees

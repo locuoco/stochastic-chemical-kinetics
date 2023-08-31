@@ -25,8 +25,8 @@ g++ tests/cme.cpp -o cme -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=
 #include <cassert>
 #include <cmath> // fabs
 
-#include "../runge_kutta.hpp"
-#include "../cme.hpp"
+#include "../include/sck/runge_kutta.hpp"
+#include "../include/sck/cme.hpp"
 
 void test_cme_tqssa()
 // Test at high enzyme concentration that tQSSA agrees
