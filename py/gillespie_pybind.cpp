@@ -58,15 +58,36 @@ PYBIND11_MODULE(gillespie, m)
 		py::arg("kf"), py::arg("kb"), py::arg("kcat"), py::arg("ET"), py::arg("ST"));
 	class_defs(c_single_substrate);
 
+	py::enum_<single_substrate<>::species>(c_single_substrate, "species")
+		.value("C", single_substrate<>::species::C)
+		.value("P", single_substrate<>::species::P);
+
+	py::enum_<single_substrate<>::reaction_channels>(c_single_substrate, "reaction_channels")
+		.value("f",   single_substrate<>::reaction_channels::f)
+		.value("b",   single_substrate<>::reaction_channels::b)
+		.value("cat", single_substrate<>::reaction_channels::cat);
+
 	py::class_<single_substrate_tqssa<>> c_single_substrate_tqssa(m, "single_substrate_tqssa");
 	c_single_substrate_tqssa.def(py::init<double, double, long long, long long>(),
 		py::arg("kM"), py::arg("kcat"), py::arg("ET"), py::arg("ST"));
 	class_defs(c_single_substrate_tqssa);
 
+	py::enum_<single_substrate_tqssa<>::species>(c_single_substrate_tqssa, "species")
+		.value("P", single_substrate_tqssa<>::species::P);
+
+	py::enum_<single_substrate_tqssa<>::reaction_channels>(c_single_substrate_tqssa, "reaction_channels")
+		.value("f", single_substrate_tqssa<>::reaction_channels::f);
+
 	py::class_<single_substrate_sqssa<>> c_single_substrate_sqssa(m, "single_substrate_sqssa");
 	c_single_substrate_sqssa.def(py::init<double, double, long long, long long>(),
 		py::arg("kM"), py::arg("kcat"), py::arg("ET"), py::arg("ST"));
 	class_defs(c_single_substrate_sqssa);
+
+	py::enum_<single_substrate_sqssa<>::species>(c_single_substrate_sqssa, "species")
+		.value("P", single_substrate_sqssa<>::species::P);
+
+	py::enum_<single_substrate_sqssa<>::reaction_channels>(c_single_substrate_sqssa, "reaction_channels")
+		.value("f", single_substrate_sqssa<>::reaction_channels::f);
 
 	py::class_<goldbeter_koshland<>> c_goldbeter_koshland(m, "goldbeter_koshland");
 	c_goldbeter_koshland.def(py::init<double, double, double, double, double, double, long long, long long, long long>(),
@@ -74,15 +95,42 @@ PYBIND11_MODULE(gillespie, m)
 		py::arg("ET"), py::arg("DT"), py::arg("ST"));
 	class_defs(c_goldbeter_koshland);
 
+	py::enum_<goldbeter_koshland<>::species>(c_goldbeter_koshland, "species")
+		.value("SP", goldbeter_koshland<>::species::SP)
+		.value("C",  goldbeter_koshland<>::species::C)
+		.value("CP", goldbeter_koshland<>::species::CP);
+
+	py::enum_<goldbeter_koshland<>::reaction_channels>(c_goldbeter_koshland, "reaction_channels")
+		.value("fe", goldbeter_koshland<>::reaction_channels::fe)
+		.value("be", goldbeter_koshland<>::reaction_channels::be)
+		.value("e",  goldbeter_koshland<>::reaction_channels::e)
+		.value("fd", goldbeter_koshland<>::reaction_channels::fd)
+		.value("bd", goldbeter_koshland<>::reaction_channels::bd)
+		.value("d",  goldbeter_koshland<>::reaction_channels::d);
+
 	py::class_<goldbeter_koshland_tqssa<>> c_goldbeter_koshland_tqssa(m, "goldbeter_koshland_tqssa");
 	c_goldbeter_koshland_tqssa.def(py::init<double, double, double, double, long long, long long, long long>(),
 		py::arg("kME"), py::arg("ke"), py::arg("kMD"), py::arg("kd"), py::arg("ET"), py::arg("DT"), py::arg("ST"));
 	class_defs(c_goldbeter_koshland_tqssa);
 
+	py::enum_<goldbeter_koshland_tqssa<>::species>(c_goldbeter_koshland_tqssa, "species")
+		.value("SP_hat", goldbeter_koshland_tqssa<>::species::SP_hat);
+
+	py::enum_<goldbeter_koshland_tqssa<>::reaction_channels>(c_goldbeter_koshland_tqssa, "reaction_channels")
+		.value("e", goldbeter_koshland_tqssa<>::reaction_channels::e)
+		.value("d", goldbeter_koshland_tqssa<>::reaction_channels::d);
+
 	py::class_<goldbeter_koshland_sqssa<>> c_goldbeter_koshland_sqssa(m, "goldbeter_koshland_sqssa");
 	c_goldbeter_koshland_sqssa.def(py::init<double, double, double, double, long long, long long, long long>(),
 		py::arg("kME"), py::arg("ke"), py::arg("kMD"), py::arg("kd"), py::arg("ET"), py::arg("DT"), py::arg("ST"));
 	class_defs(c_goldbeter_koshland_sqssa);
+
+	py::enum_<goldbeter_koshland_sqssa<>::species>(c_goldbeter_koshland_sqssa, "species")
+		.value("SP", goldbeter_koshland_sqssa<>::species::SP);
+
+	py::enum_<goldbeter_koshland_sqssa<>::reaction_channels>(c_goldbeter_koshland_sqssa, "reaction_channels")
+		.value("e", goldbeter_koshland_sqssa<>::reaction_channels::e)
+		.value("d", goldbeter_koshland_sqssa<>::reaction_channels::d);
 }
 
 

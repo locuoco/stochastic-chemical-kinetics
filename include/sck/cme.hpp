@@ -359,6 +359,7 @@ namespace cme
 	public:
 
 		enum species : std::size_t {P, num_species};
+		enum reaction_channels : std::size_t {f, num_rc};
 
 		T kcat, kM;
 		long long ET, ST;
@@ -410,6 +411,7 @@ namespace cme
 	public:
 
 		enum species : std::size_t {P, num_species};
+		enum reaction_channels : std::size_t {f, num_rc};
 
 		T kcat, kM;
 		long long ET, ST;
