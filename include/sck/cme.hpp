@@ -26,7 +26,6 @@
 #include <cmath> // sqrt
 #include <string>
 
-#include "common.hpp"
 #include "tensor.hpp"
 
 namespace cme

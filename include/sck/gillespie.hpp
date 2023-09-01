@@ -27,8 +27,6 @@
 #include <array>
 #include <cmath> // log, sqrt
 
-#include "common.hpp"
-
 namespace gillespie
 {
 	template <std::floating_point T = double>
@@ -132,8 +130,7 @@ namespace gillespie
 		// set t_final to 0 or negative number for infinity
 		// if the total propensity gets to zero, the simulation will be terminated
 		{
-			if (b_initial)
-				states.push_back({x, t});
+			states.push_back({x, t});
 			for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
 			{
 				if (!step(t_final))
