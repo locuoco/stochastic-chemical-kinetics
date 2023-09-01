@@ -51,8 +51,7 @@ PYBIND11_MODULE(gillespie, m)
 		.def("simulate",
 			&simulate<single_substrate<>>,
 			py::arg("n_steps"),
-			py::arg("t_final") = 0.,
-			py::arg("b_initial") = true)
+			py::arg("t_final") = 0.)
 		.def_readwrite("x", &single_substrate<>::x)
 		.def_readwrite("t", &single_substrate<>::t);
 
@@ -62,8 +61,7 @@ PYBIND11_MODULE(gillespie, m)
 		.def("simulate",
 			&simulate<single_substrate_tqssa<>>,
 			py::arg("n_steps"),
-			py::arg("t_final") = 0.,
-			py::arg("b_initial") = true)
+			py::arg("t_final") = 0.)
 		.def_readwrite("x", &single_substrate_tqssa<>::x)
 		.def_readwrite("t", &single_substrate_tqssa<>::t);
 
@@ -73,8 +71,7 @@ PYBIND11_MODULE(gillespie, m)
 		.def("simulate",
 			&simulate<single_substrate_sqssa<>>,
 			py::arg("n_steps"),
-			py::arg("t_final") = 0.,
-			py::arg("b_initial") = true)
+			py::arg("t_final") = 0.)
 		.def_readwrite("x", &single_substrate_sqssa<>::x)
 		.def_readwrite("t", &single_substrate_sqssa<>::t);
 
@@ -86,8 +83,7 @@ PYBIND11_MODULE(gillespie, m)
 		.def("simulate",
 			&simulate<goldbeter_koshland<>>,
 			py::arg("n_steps"),
-			py::arg("t_final") = 0.,
-			py::arg("b_initial") = true)
+			py::arg("t_final") = 0.)
 		.def_readwrite("x", &goldbeter_koshland<>::x)
 		.def_readwrite("t", &goldbeter_koshland<>::t);
 
@@ -98,8 +94,7 @@ PYBIND11_MODULE(gillespie, m)
 		.def("simulate",
 			&simulate<goldbeter_koshland_tqssa<>>,
 			py::arg("n_steps"),
-			py::arg("t_final") = 0.,
-			py::arg("b_initial") = true)
+			py::arg("t_final") = 0.)
 		.def_readwrite("x", &goldbeter_koshland_tqssa<>::x)
 		.def_readwrite("t", &goldbeter_koshland_tqssa<>::t);
 
@@ -110,8 +105,7 @@ PYBIND11_MODULE(gillespie, m)
 		.def("simulate",
 			&simulate<goldbeter_koshland_sqssa<>>,
 			py::arg("n_steps"),
-			py::arg("t_final") = 0.,
-			py::arg("b_initial") = true)
+			py::arg("t_final") = 0.)
 		.def_readwrite("x", &goldbeter_koshland_sqssa<>::x)
 		.def_readwrite("t", &goldbeter_koshland_sqssa<>::t);
 }

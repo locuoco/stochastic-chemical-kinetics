@@ -40,7 +40,7 @@ void test_cme_tqssa()
 	long long ET = 10, ST = 9;
 	double t = 1, dt = 1e-4;
 
-	rk4_3_8 integ; // 4-th order Runge-Kutta integrator
+	runge_kutta::ralston4 integ; // 4-th order Runge-Kutta integrator
 
 	// Full model
 	cme::single_substrate sys_ss(kf, kb, kcat, ET, ST);

@@ -127,10 +127,9 @@ namespace gillespie
 					break;
 		}
 
-		void simulate(std::vector<state<T>>& states, std::size_t n, T t_final = 0, bool b_initial = true)
-		// simulate for n steps or until t >= t_final, and save the states inside a list (final state is always included)
+		void simulate(std::vector<state<T>>& states, std::size_t n, T t_final = 0)
+		// simulate for n steps or until t >= t_final, and save the states inside a list (initial and final state are included)
 		// set t_final to 0 or negative number for infinity
-		// set b_initial to false if the initial state should not be included (default is true)
 		// if the total propensity gets to zero, the simulation will be terminated
 		{
 			if (b_initial)
@@ -501,7 +500,7 @@ namespace gillespie
 			}
 		}
 	};
-}
+} // namespace gillespie
 
 #endif // SEK_GILLESPIE
 

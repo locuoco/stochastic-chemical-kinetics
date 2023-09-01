@@ -196,6 +196,7 @@ namespace cme
 		template <typename Integ>
 		[[maybe_unused]] std::size_t simulate(Integ& integ, T dt, T t_final)
 		// simulate until t >= t_final
+		// dt is the integration step
 		// return the number of steps
 		{
 			std::size_t i;
@@ -205,19 +206,20 @@ namespace cme
 		}
 
 		template <typename Integ>
-		[[maybe_unused]] std::size_t simulate(Integ& integ, std::vector<state<T>>& states, T dt, T t_final, bool b_initial = true)
-		// simulate until t >= t_final, and save the states inside a list (final state is always included)
-		// set b_initial to false if the initial state should not be included (default is true)
+		[[maybe_unused]] std::size_t simulate(Integ& integ, std::vector<state<T>>& states, T dt, T t_final, std::size_t n_sampling = 1)
+		// simulate until t >= t_final, and save the states inside a list (initial and final states are included)
+		// dt is the integration step
+		// n_sampling is the number of integration steps for each sampling point
 		// return the number of steps
 		{
-			if (b_initial)
-				states.push_back({p, t});
 			std::size_t i;
 			for (i = 0; t <= t_final; ++i)
 			{
+				if (i % n_sampling == 0)
+					states.push_back({p, t});
 				step(integ, dt);
-				states.push_back({p, t});
 			}
+			states.push_back({p, t});
 			return i;
 		}
 
@@ -609,7 +611,7 @@ namespace cme
 			}
 		}
 	};
-}
+} // namespace cme
 
 #endif // SEK_CME
 
