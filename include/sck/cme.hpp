@@ -54,7 +54,7 @@ namespace cme
 		mutable physics::vec<long long, N_s> x;
 		mutable std::array<std::array<T, moments_max_order+1>, N_s> m;
 		std::valarray<T> p, dp;
-		T t;
+		T t = 0;
 		mutable bool calculated_stats = false;
 
 		long long n_elems() const noexcept
@@ -131,7 +131,7 @@ namespace cme
 
 		virtual ~cme() = default;
 
-		std::size_t get_index(const physics::vec<long long, N_s>& y) const noexcept
+		std::size_t get_index(const std::array<long long, N_s>& y) const noexcept
 		// get index from population numbers y
 		{
 			long long index = 0;
@@ -140,10 +140,10 @@ namespace cme
 			return index;
 		}
 
-		physics::vec<long long, N_s> get_pop(std::size_t index) const noexcept
+		std::array<long long, N_s> get_pop(std::size_t index) const noexcept
 		// get population numbers from index
 		{
-			physics::vec<long long, N_s> y;
+			std::array<long long, N_s> y;
 			for (std::size_t i = N_s; i --> 0; )
 			{
 				y[i] = index % n_max[i];
@@ -226,6 +226,13 @@ namespace cme
 		// return the current state
 		{
 			return {p, t};
+		}
+
+		void set_state(const state<T>& s) noexcept
+		// set the current state
+		{
+			p = s.p;
+			t = s.t;
 		}
 
 		T mean(std::size_t s_i) const
