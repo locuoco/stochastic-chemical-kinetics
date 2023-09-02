@@ -41,23 +41,24 @@ completion_times_tq = []
 completion_times_sq = []
 
 n_simulations = 20000
+max_t = 20
 
 for _ in range(n_simulations):
 	g_ss.x = [0, 0]
 	g_ss.t = 0
-	g_ss.simulate(t_final=20)
+	g_ss.simulate(t_final=max_t, noreturn=True)
 	completion_times_ss.append(g_ss.t)
 
 for _ in range(n_simulations):
 	g_tq.x = [0]
 	g_tq.t = 0
-	g_tq.simulate(t_final=20)
+	g_tq.simulate(t_final=max_t, noreturn=True)
 	completion_times_tq.append(g_tq.t)
 
 for _ in range(n_simulations):
 	g_sq.x = [0]
 	g_sq.t = 0
-	g_sq.simulate(t_final=20)
+	g_sq.simulate(t_final=max_t, noreturn=True)
 	completion_times_sq.append(g_sq.t)
 
 print('Exact:', mean(completion_times_ss), '+/-', stdev(completion_times_ss))

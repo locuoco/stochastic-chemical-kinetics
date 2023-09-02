@@ -21,6 +21,9 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 */
 
+#include <optional>
+#include <vector>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -33,22 +36,24 @@ template <typename Class>
 void class_defs(py::class_<Class>& c)
 {
 	c.def("step", Class::step, py::arg("t_final") = 0.);
-	c.def("simulate_noreturn",
-		[](Class& self, double t_final, std::size_t max_steps)
-		{
-			self.simulate(t_final, max_steps);
-		},
-		py::arg("t_final") = 0.,
-		py::arg("max_steps") = Class::default_max_steps());
 	c.def("simulate",
-		[](Class& self, double t_final, std::size_t max_steps)
+		[](Class& self, double t_final, std::size_t max_steps, bool noreturn) -> std::optional<std::vector<state<>>>
 		{
-			std::vector<state<>> states;
-			self.simulate(states, t_final, max_steps);
-			return states;
+			if (noreturn)
+			{
+				self.simulate(t_final, max_steps);
+				return {};
+			}
+			else
+			{
+				std::vector<state<>> states;
+				self.simulate(states, t_final, max_steps);
+				return states;
+			}
 		},
 		py::arg("t_final") = 0.,
-		py::arg("max_steps") = Class::default_max_steps());
+		py::arg("max_steps") = Class::default_max_steps(),
+		py::arg("noreturn") = false);
 	c.def_readwrite("x", &Class::x);
 	c.def_readwrite("t", &Class::t);
 }

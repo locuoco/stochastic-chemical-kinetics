@@ -31,31 +31,33 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(runge_kutta, m)
 {
-	py::class_<euler<>>(m, "euler")
+	py::class_<integrator<>>(m, "integrator");
+
+	py::class_<euler<>, integrator<>>(m, "euler")
 		.def(py::init());
 
-	py::class_<midpoint<>>(m, "midpoint")
+	py::class_<midpoint<>, integrator<>>(m, "midpoint")
 		.def(py::init());
 
-	py::class_<heun2<>>(m, "heun2")
+	py::class_<heun2<>, integrator<>>(m, "heun2")
 		.def(py::init());
 
-	py::class_<ralston2<>>(m, "ralston2")
+	py::class_<ralston2<>, integrator<>>(m, "ralston2")
 		.def(py::init());
 
-	py::class_<rk4<>>(m, "rk4")
+	py::class_<rk4<>, integrator<>>(m, "rk4")
 		.def(py::init());
 
-	py::class_<rk4_3_8<>>(m, "rk4_3_8")
+	py::class_<rk4_3_8<>, integrator<>>(m, "rk4_3_8")
 		.def(py::init());
 
-	py::class_<ralston4<>>(m, "ralston4")
+	py::class_<ralston4<>, integrator<>>(m, "ralston4")
 		.def(py::init());
 
-	py::class_<butcher6<>>(m, "butcher6")
+	py::class_<butcher6<>, integrator<>>(m, "butcher6")
 		.def(py::init());
 
-	py::class_<verner8<>>(m, "verner8")
+	py::class_<verner8<>, integrator<>>(m, "verner8")
 		.def(py::init());
 }
 

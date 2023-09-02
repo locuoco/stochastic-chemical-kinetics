@@ -22,10 +22,18 @@
 #include <valarray>
 #include <array>
 
+template <std::floating_point T = double>
+struct integrator
+{
+	virtual ~integrator() = default;
+
+	virtual void step(std::valarray<T>& x, T dt, std::function<const std::valarray<T>& (const std::valarray<T>&)> f) = 0;
+};
+
 namespace runge_kutta
 {
 	template <std::size_t Stages, std::floating_point T = double>
-	class runge_kutta
+	class runge_kutta : public integrator<T>
 	// all explicit Runge-Kutta methods inherit from this class
 	// `Stages` is the number of stages of the method (number of force evaluations).
 	{

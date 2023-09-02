@@ -21,6 +21,9 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 */
 
+#include <optional>
+#include <vector>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -35,16 +38,45 @@ void class_integ(py::class_<Class>& c)
 {
 	c.def("step", Class::template step<Integ>, py::arg("integ"), py::arg("dt"));
 	c.def("simulate",
-		[](Class& self, Integ& integ, double dt, double t_final, std::size_t n_sampling)
+		[](Class& self, Integ& integ, double dt, double t_final, std::size_t n_sampling, bool noreturn) -> std::optional<std::vector<state<>>>
 		{
-			std::vector<state<>> states;
-			self.simulate(integ, states, dt, t_final, n_sampling);
-			return states;
+			if (noreturn)
+			{
+				self.simulate(integ, dt, t_final);
+				return {};
+			}
+			else
+			{
+				std::vector<state<>> states;
+				self.simulate(integ, states, dt, t_final, n_sampling);
+				return states;
+			}
 		},
 		py::arg("integ"),
 		py::arg("dt"),
 		py::arg("t_final"),
-		py::arg("n_sampling") = 1);
+		py::arg("n_sampling") = 1,
+		py::arg("noreturn") = false);
+	c.def("simulate",
+		[](Class& self, double dt, double t_final, std::size_t n_sampling, bool noreturn) -> std::optional<std::vector<state<>>>
+		{
+			runge_kutta::ralston4<> default_integ;
+			if (noreturn)
+			{
+				self.simulate(default_integ, dt, t_final);
+				return {};
+			}
+			else
+			{
+				std::vector<state<>> states;
+				self.simulate(default_integ, states, dt, t_final, n_sampling);
+				return states;
+			}
+		},
+		py::arg("dt"),
+		py::arg("t_final"),
+		py::arg("n_sampling") = 1,
+		py::arg("noreturn") = false);
 }
 
 template <typename Class>
@@ -62,15 +94,7 @@ void class_defs(py::class_<Class>& c)
 			return self.get_pop(index);
 		},
 		py::arg("index"));
-	class_integ<runge_kutta::euler<>>(c);
-	class_integ<runge_kutta::midpoint<>>(c);
-	class_integ<runge_kutta::heun2<>>(c);
-	class_integ<runge_kutta::ralston2<>>(c);
-	class_integ<runge_kutta::rk4<>>(c);
-	class_integ<runge_kutta::rk4_3_8<>>(c);
-	class_integ<runge_kutta::ralston4<>>(c);
-	class_integ<runge_kutta::butcher6<>>(c);
-	class_integ<runge_kutta::verner8<>>(c);
+	class_integ<integrator<>>(c);
 	c.def("get_state", [](const Class& self) { return self.get_state(); });
 	c.def("set_state",
 		[](Class& self, const state<>& s)
