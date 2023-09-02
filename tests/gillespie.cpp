@@ -35,7 +35,7 @@ void test_gillespie_tqssa_prod()
 {
 	using std::fabs;
 
-	std::size_t n = 10'000, max_steps = 1'000, t = 2;
+	std::size_t n = 10'000, t = 2;
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
 	double P1 = 0, P2 = 0;
@@ -47,7 +47,7 @@ void test_gillespie_tqssa_prod()
 	{
 		sys1.x = 0;
 		sys1.t = 0;
-		sys1.simulate(max_steps, t);
+		sys1.simulate(t);
 		P1 += sys1.x[sys1.P];
 	}
 	P1 /= n*ST;
@@ -56,7 +56,7 @@ void test_gillespie_tqssa_prod()
 	{
 		sys2.x = 0;
 		sys2.t = 0;
-		sys2.simulate(max_steps, t);
+		sys2.simulate(t);
 		P2 += sys2.x[sys2.P];
 	}
 	P2 /= n*ST;
@@ -74,7 +74,7 @@ void test_gillespie_tqssa_completion()
 {
 	using std::fabs;
 
-	std::size_t n = 10'000, max_steps = 1'000;
+	std::size_t n = 10'000;
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
 	double t1 = 0, t2 = 0;
@@ -86,7 +86,7 @@ void test_gillespie_tqssa_completion()
 	{
 		sys1.x = 0;
 		sys1.t = 0;
-		sys1.simulate(max_steps);
+		sys1.simulate();
 		t1 += sys1.t;
 	}
 	t1 /= n;
@@ -95,7 +95,7 @@ void test_gillespie_tqssa_completion()
 	{
 		sys2.x = 0;
 		sys2.t = 0;
-		sys2.simulate(max_steps);
+		sys2.simulate();
 		t2 += sys2.t;
 	}
 	t2 /= n;

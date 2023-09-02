@@ -1,4 +1,4 @@
-//  Stochastic enzyme kinetics: Gillespie algorithm python binding
+//  Stochastic enzyme kinetics: chemical master equation python binding
 //  Copyright (C) 2023 Alessandro Lo Cuoco (alessandro.locuoco@gmail.com)
 
 //  This program is free software: you can redistribute it and/or modify
@@ -17,40 +17,78 @@
 /*
 
 Compilation (MinGW):
-g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=1 -DMS_WIN64 -fPIC -IC:\Users\aless\Desktop\myLib\include -IC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\include -LC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\libs gillespie_pybind.cpp -o gillespie.pyd -lPython39
+g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic -O3 -fmax-errors=1 -DMS_WIN64 -fPIC -IC:\Users\aless\Desktop\myLib\include -IC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\include -LC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\libs cme_pybind.cpp -o cme.pyd -lPython39
 
 */
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "../include/sck/gillespie.hpp"
+#include "../include/sck/cme.hpp"
+#include "../include/sck/runge_kutta.hpp"
 
-using namespace gillespie;
+using namespace cme;
 namespace py = pybind11;
+
+template <typename Integ, typename Class>
+void class_integ(py::class_<Class>& c)
+{
+	c.def("step", Class::template step<Integ>, py::arg("integ"), py::arg("dt"));
+	c.def("simulate",
+		[](Class& self, Integ& integ, double dt, double t_final, std::size_t n_sampling)
+		{
+			std::vector<state<>> states;
+			self.simulate(integ, states, dt, t_final, n_sampling);
+			return states;
+		},
+		py::arg("integ"),
+		py::arg("dt"),
+		py::arg("t_final"),
+		py::arg("n_sampling") = 1);
+}
 
 template <typename Class>
 void class_defs(py::class_<Class>& c)
 {
-	c.def("step", &Class::step, py::arg("t_final") = 0.);
-	c.def("simulate",
-		[](Class& self, std::size_t n, double t_final)
+	c.def("get_index",
+		[](const Class& self, const std::array<long long, Class::num_species>& y)
 		{
-			std::vector<state<>> states;
-			self.simulate(states, n, t_final);
-			return states;
+			return self.get_index(y);
 		},
-		py::arg("n_steps"),
-		py::arg("t_final") = 0.);
-	c.def_readwrite("x", &Class::x);
-	c.def_readwrite("t", &Class::t);
+		py::arg("pop"));
+	c.def("get_pop",
+		[](const Class& self, std::size_t index)
+		{
+			return self.get_pop(index);
+		},
+		py::arg("index"));
+	class_integ<runge_kutta::euler<>>(c);
+	class_integ<runge_kutta::midpoint<>>(c);
+	class_integ<runge_kutta::heun2<>>(c);
+	class_integ<runge_kutta::ralston2<>>(c);
+	class_integ<runge_kutta::rk4<>>(c);
+	class_integ<runge_kutta::rk4_3_8<>>(c);
+	class_integ<runge_kutta::ralston4<>>(c);
+	class_integ<runge_kutta::butcher6<>>(c);
+	class_integ<runge_kutta::verner8<>>(c);
+	c.def("get_state", [](const Class& self) { return self.get_state(); });
+	c.def("set_state",
+		[](Class& self, const state<>& s)
+		{
+			self.set_state(s);
+		},
+		py::arg("state"));
+	c.def("mean", Class::mean, py::arg("s_i"));
+	c.def("msq", Class::msq, py::arg("s_i"));
+	c.def("sd", Class::sd, py::arg("s_i"));
+	c.def("nth_moment", Class::nth_moment, py::arg("s_i"), py::arg("n"));
 }
 
-PYBIND11_MODULE(gillespie, m)
+PYBIND11_MODULE(cme, m)
 {
 	py::class_<state<>>(m, "state")
 		.def(py::init())
-		.def_readwrite("x", &state<>::x)
+		.def_readwrite("p", &state<>::p)
 		.def_readwrite("t", &state<>::t);
 
 	py::class_<single_substrate<>> c_single_substrate(m, "single_substrate");

@@ -67,6 +67,11 @@ namespace gillespie
 
 		virtual ~gillespie() = default;
 
+		static constexpr std::size_t default_max_steps() noexcept
+		{
+			return 1'000'000;
+		}
+
 		T total_propensity() const
 		// return the total propensity, i.e., the sum of all propensity functions
 		// calculated at the current population numbers x.
@@ -115,23 +120,23 @@ namespace gillespie
 			return true;
 		}
 
-		void simulate(std::size_t n, T t_final = 0)
-		// simulate for n steps or until t >= t_final
+		void simulate(T t_final = 0, std::size_t max_steps = default_max_steps())
+		// simulate for max_steps steps or until t >= t_final
 		// set t_final to 0 or negative number for infinity
 		// if the total propensity gets to zero, the simulation will be terminated
 		{
-			for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
+			for (std::size_t i = 0; i < max_steps && (t <= t_final || t_final <= 0); ++i)
 				if (!step(t_final))
 					break;
 		}
 
-		void simulate(std::vector<state<T>>& states, std::size_t n, T t_final = 0)
-		// simulate for n steps or until t >= t_final, and save the states inside a list (initial and final state are included)
+		void simulate(std::vector<state<T>>& states, T t_final = 0, std::size_t max_steps = default_max_steps())
+		// simulate for max_steps steps or until t >= t_final, and save the states inside a list (initial and final state are included)
 		// set t_final to 0 or negative number for infinity
 		// if the total propensity gets to zero, the simulation will be terminated
 		{
 			states.push_back({x, t});
-			for (std::size_t i = 0; i < n && (t <= t_final || t_final <= 0); ++i)
+			for (std::size_t i = 0; i < max_steps && (t <= t_final || t_final <= 0); ++i)
 			{
 				if (!step(t_final))
 					break;
