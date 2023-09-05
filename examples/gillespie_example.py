@@ -24,10 +24,7 @@ sys.path.append('../pybind')
 
 import gillespie
 
-ET = 10
-ST = 9
-
-g = gillespie.single_substrate(kf=10, kb=9, kcat=1, ET=ET, ST=ST)
+g = gillespie.single_substrate(kf=10, kb=9, kcat=1, ET=10, ST=9)
 
 states = g.simulate()
 
