@@ -1,5 +1,5 @@
 '''
-    Stochastic enzyme kinetics: time completions histogram
+    Stochastic enzyme kinetics: completion times histogram
     Copyright (C) 2023 Alessandro Lo Cuoco (alessandro.locuoco@gmail.com)
 
     This program is free software: you can redistribute it and/or modify
@@ -62,7 +62,7 @@ plt.hist(completion_times['tQSSA'], bins, label='tQSSA', density=True, color='re
 plt.hist(completion_times['sQSSA'], bins, label='sQSSA', density=True, color='gray', alpha=.3)
 
 plt.ylim(0, .4)
-plt.xlabel('Time')
+plt.xlabel('Completion time ($\tau$)')
 plt.ylabel('Probability density')
 plt.legend()
 

@@ -37,7 +37,7 @@ void class_defs(py::class_<Class>& c)
 {
 	c.def("step", Class::step, py::arg("t_final") = 0.);
 	c.def("simulate",
-		[](Class& self, double t_final, std::size_t max_steps, bool noreturn) -> std::optional<std::vector<state<>>>
+		[](Class& self, double t_final, std::size_t max_steps, std::size_t n_sampling, bool noreturn) -> std::optional<std::vector<state<>>>
 		{
 			if (noreturn)
 			{
@@ -47,12 +47,13 @@ void class_defs(py::class_<Class>& c)
 			else
 			{
 				std::vector<state<>> states;
-				self.simulate(states, t_final, max_steps);
+				self.simulate(states, t_final, max_steps, n_sampling);
 				return states;
 			}
 		},
 		py::arg("t_final") = 0.,
 		py::arg("max_steps") = Class::default_max_steps(),
+		py::arg("n_sampling") = 1,
 		py::arg("noreturn") = false);
 	c.def_readwrite("x", &Class::x);
 	c.def_readwrite("t", &Class::t);

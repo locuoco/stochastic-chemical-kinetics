@@ -69,7 +69,7 @@ namespace gillespie
 
 		static constexpr std::size_t default_max_steps() noexcept
 		{
-			return 1'000'000;
+			return 10'000'000;
 		}
 
 		T total_propensity() const
@@ -130,18 +130,20 @@ namespace gillespie
 					break;
 		}
 
-		void simulate(std::vector<state<T>>& states, T t_final = 0, std::size_t max_steps = default_max_steps())
+		void simulate(std::vector<state<T>>& states, T t_final = 0, std::size_t max_steps = default_max_steps(), std::size_t n_sampling = 1)
 		// simulate for max_steps steps or until t >= t_final, and save the states inside a list (initial and final state are included)
 		// set t_final to 0 or negative number for infinity
+		// n_sampling is the number of Gillespie algorithm steps for each sampling point
 		// if the total propensity gets to zero, the simulation will be terminated
 		{
-			states.push_back({x, t});
 			for (std::size_t i = 0; i < max_steps && (t <= t_final || t_final <= 0); ++i)
 			{
+				if (i % n_sampling == 0)
+					states.push_back({x, t});
 				if (!step(t_final))
 					break;
-				states.push_back({x, t});
 			}
+			states.push_back({x, t});
 		}
 
 		virtual T a(std::size_t i) const = 0;

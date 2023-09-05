@@ -18,8 +18,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from statistics import mean, stdev
 import sys
 
 sys.path.append('../pybind')
@@ -43,7 +41,7 @@ g['sQSSA'] = gillespie.single_substrate_sqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 dPs = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
 ts  = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
 n_simulations = {'Exact': 1000, 'tQSSA': 10000, 'sQSSA': 10000}
-init_conditions =  {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
+init_conditions = {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
 max_t = 9
 
 for s in sim:
@@ -82,7 +80,7 @@ for s in sim:
 
 plt.ylim(0)
 plt.xlabel('Time')
-plt.ylabel('Products count (average)')
+plt.ylabel('Products count (average, $P$)')
 plt.legend()
 
 plt.show()
