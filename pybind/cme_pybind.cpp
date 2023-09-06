@@ -23,9 +23,11 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 #include <optional>
 #include <vector>
+#include <memory> // shared_ptr
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include "../include/sck/cme.hpp"
 #include "../include/sck/runge_kutta.hpp"
@@ -36,9 +38,8 @@ namespace py = pybind11;
 template <typename Integ, typename Class>
 void class_integ(py::class_<Class>& c)
 {
-	c.def("step", Class::template step<Integ>, py::arg("integ"), py::arg("dt"));
-	c.def("simulate",
-		[](Class& self, Integ& integ, double dt, double t_final, std::size_t n_sampling, bool noreturn) -> std::optional<std::vector<state<>>>
+	auto simulate_integ = [](Class& self, Integ& integ, double dt, double t_final, std::size_t n_sampling, bool noreturn)
+		-> std::optional<py::tuple>
 		{
 			if (noreturn)
 			{
@@ -47,36 +48,81 @@ void class_integ(py::class_<Class>& c)
 			}
 			else
 			{
-				std::vector<state<>> states;
-				self.simulate(integ, states, dt, t_final, n_sampling);
-				return states;
+				std::shared_ptr<list_of_states<>>* states = new std::shared_ptr(std::make_shared<list_of_states<>>());
+				states = new std::shared_ptr(*states);
+
+				self.simulate(integ, **states, dt, t_final, n_sampling);
+
+				py::capsule free_when_done(
+					states,
+					[](void* f)
+					{
+						delete reinterpret_cast<std::shared_ptr<list_of_states<>>*>(f);
+					}
+				);
+				std::array<long long, Class::num_species+1> shape, stride;
+				shape[0] = (*states)->p.size();
+				for (std::size_t i = 1; i < Class::num_species+1; ++i)
+					shape[i] = self.get_shape_index(i-1);
+				stride[Class::num_species] = sizeof(double);
+				for (std::size_t i = Class::num_species; i --> 0; )
+					stride[i] = stride[i+1]*shape[i+1];
+				return py::make_tuple<py::return_value_policy::take_ownership>(
+						py::array_t<double>(
+							shape,
+							stride,
+							(*states)->p.data(),
+							free_when_done
+						),
+						py::array_t<double>(
+							{(long long)(*states)->t.size()},
+							{(long long)sizeof(double)},
+							(*states)->t.data(),
+							free_when_done
+						)
+					);
 			}
-		},
+		};
+	auto simulate_no_integ = [simulate_integ](Class& self, double dt, double t_final, std::size_t n_sampling, bool noreturn)
+		-> std::optional<py::tuple>
+		{
+			runge_kutta::ralston4<> default_integ;
+			return simulate_integ(self, default_integ, dt, t_final, n_sampling, noreturn);
+		};
+	c.def("step", Class::template step<Integ>, py::arg("integ"), py::arg("dt"));
+	c.def("simulate",
+		simulate_integ,
 		py::arg("integ"),
 		py::arg("dt"),
 		py::arg("t_final"),
 		py::arg("n_sampling") = 1,
 		py::arg("noreturn") = false);
 	c.def("simulate",
-		[](Class& self, double dt, double t_final, std::size_t n_sampling, bool noreturn) -> std::optional<std::vector<state<>>>
-		{
-			runge_kutta::ralston4<> default_integ;
-			if (noreturn)
-			{
-				self.simulate(default_integ, dt, t_final);
-				return {};
-			}
-			else
-			{
-				std::vector<state<>> states;
-				self.simulate(default_integ, states, dt, t_final, n_sampling);
-				return states;
-			}
-		},
+		simulate_no_integ,
 		py::arg("dt"),
 		py::arg("t_final"),
 		py::arg("n_sampling") = 1,
 		py::arg("noreturn") = false);
+	c.def_property("p",
+		[](const Class& self)
+		{
+			std::array<long long, Class::num_species> shape, stride;
+			for (std::size_t i = 0; i < Class::num_species; ++i)
+				shape[i] = self.get_shape_index(i);
+			stride[Class::num_species-1] = sizeof(double);
+			for (std::size_t i = Class::num_species-1; i --> 0; )
+				stride[i] = stride[i+1]*shape[i+1];
+			return py::array_t<double>(
+				shape,
+				stride,
+				&self.p[0]
+			);
+		},
+		[](Class& self, py::array_t<double, py::array::c_style | py::array::forcecast> py_array)
+		{
+			self.p = std::valarray<double>(py_array.data(), py_array.size());
+		});
+	c.def_readwrite("t", &Class::t);
 }
 
 template <typename Class>
@@ -95,13 +141,6 @@ void class_defs(py::class_<Class>& c)
 		},
 		py::arg("index"));
 	class_integ<integrator<>>(c);
-	c.def("get_state", [](const Class& self) { return self.get_state(); });
-	c.def("set_state",
-		[](Class& self, const state<>& s)
-		{
-			self.set_state(s);
-		},
-		py::arg("state"));
 	c.def("mean", Class::mean, py::arg("s_i"));
 	c.def("msq", Class::msq, py::arg("s_i"));
 	c.def("sd", Class::sd, py::arg("s_i"));
@@ -110,11 +149,6 @@ void class_defs(py::class_<Class>& c)
 
 PYBIND11_MODULE(cme, m)
 {
-	py::class_<state<>>(m, "state")
-		.def(py::init())
-		.def_readwrite("p", &state<>::p)
-		.def_readwrite("t", &state<>::t);
-
 	py::class_<single_substrate<>> c_single_substrate(m, "single_substrate");
 	c_single_substrate.def(py::init<double, double, double, long long, long long>(),
 		py::arg("kf"), py::arg("kb"), py::arg("kcat"), py::arg("ET"), py::arg("ST"));

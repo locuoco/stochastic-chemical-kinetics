@@ -18,7 +18,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from statistics import mean, stdev
 import sys
 
 sys.path.append('../pybind')
@@ -39,21 +38,25 @@ g['Exact'] = gillespie.single_substrate(kf=kf, kb=kb, kcat=kcat, ET=ET, ST=ST)
 g['tQSSA'] = gillespie.single_substrate_tqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 g['sQSSA'] = gillespie.single_substrate_sqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 
-completion_times = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
-init_conditions =  {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
-
 n_simulations = 20000
 max_t = 20
 
+completion_times = {
+	'Exact': np.empty((n_simulations,)),
+	'tQSSA': np.empty((n_simulations,)),
+	'sQSSA': np.empty((n_simulations,))
+}
+init_conditions =  {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
+
 for s in sim:
-	for _ in range(n_simulations):
+	for i in range(n_simulations):
 		g[s].x = init_conditions[s]
 		g[s].t = 0
 		g[s].simulate(t_final=max_t, noreturn=True)
-		completion_times[s].append(g[s].t)
+		completion_times[s][i] = g[s].t
 
 for s in sim:
-	print(s, mean(completion_times[s]), '+/-', stdev(completion_times[s]))
+	print(s, np.mean(completion_times[s]), '+/-', np.std(completion_times[s]))
 
 bins = np.linspace(0, 9, 19)
 

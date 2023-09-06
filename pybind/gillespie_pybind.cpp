@@ -23,9 +23,11 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 #include <optional>
 #include <vector>
+#include <memory> // shared_ptr
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include "../include/sck/gillespie.hpp"
 
@@ -37,7 +39,7 @@ void class_defs(py::class_<Class>& c)
 {
 	c.def("step", Class::step, py::arg("t_final") = 0.);
 	c.def("simulate",
-		[](Class& self, double t_final, std::size_t max_steps, std::size_t n_sampling, bool noreturn) -> std::optional<std::vector<state<>>>
+		[](Class& self, double t_final, std::size_t max_steps, std::size_t n_sampling, bool noreturn) -> std::optional<py::tuple>
 		{
 			if (noreturn)
 			{
@@ -46,26 +48,57 @@ void class_defs(py::class_<Class>& c)
 			}
 			else
 			{
-				std::vector<state<>> states;
-				self.simulate(states, t_final, max_steps, n_sampling);
-				return states;
+				std::shared_ptr<list_of_states<Class::num_species>>* states
+					= new std::shared_ptr(std::make_shared<list_of_states<Class::num_species>>());
+				states = new std::shared_ptr(*states);
+
+				self.simulate(**states, t_final, max_steps, n_sampling);
+
+				py::capsule free_when_done(
+					states,
+					[](void* f)
+					{
+						delete reinterpret_cast<std::shared_ptr<list_of_states<Class::num_species>>*>(f);
+					}
+				);
+				return py::make_tuple<py::return_value_policy::take_ownership>(
+						py::array_t<long long>(
+							{(long long)(*states)->x.size(), (long long)Class::num_species},
+							{(long long)(Class::num_species*sizeof(long long)), (long long)sizeof(long long)},
+							reinterpret_cast<long long*>((*states)->x.data()),
+							free_when_done
+						),
+						py::array_t<double>(
+							{(*states)->t.size()},
+							{sizeof(double)},
+							(*states)->t.data(),
+							free_when_done
+						)
+					);
 			}
 		},
 		py::arg("t_final") = 0.,
 		py::arg("max_steps") = Class::default_max_steps(),
 		py::arg("n_sampling") = 1,
 		py::arg("noreturn") = false);
-	c.def_readwrite("x", &Class::x);
+	c.def_property("x",
+		[](const Class& self)
+		{
+			return py::array_t<long long>(
+				{(long long)Class::num_species},
+				{sizeof(long long)},
+				self.x.data()
+			);
+		},
+		[](Class& self, py::array_t<long long, py::array::c_style | py::array::forcecast> py_array)
+		{
+			std::copy(py_array.data(), py_array.data() + py_array.size(), self.x.begin());
+		});
 	c.def_readwrite("t", &Class::t);
 }
 
 PYBIND11_MODULE(gillespie, m)
 {
-	py::class_<state<>>(m, "state")
-		.def(py::init())
-		.def_readwrite("x", &state<>::x)
-		.def_readwrite("t", &state<>::t);
-
 	py::class_<single_substrate<>> c_single_substrate(m, "single_substrate");
 	c_single_substrate.def(py::init<double, double, double, long long, long long>(),
 		py::arg("kf"), py::arg("kb"), py::arg("kcat"), py::arg("ET"), py::arg("ST"));

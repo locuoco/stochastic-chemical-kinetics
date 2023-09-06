@@ -27,17 +27,16 @@
 #include <array>
 #include <cmath> // log, sqrt
 
+#include "tensor.hpp"
+
 namespace gillespie
 {
-	template <std::floating_point T = double>
-	struct state
+	template <std::size_t N_s, std::floating_point T = double>
+	struct list_of_states
 	{
-		std::valarray<long long> x;
-		T t;
+		std::vector<physics::vec<long long, N_s>> x;
+		std::vector<T> t;
 	};
-
-	// template argument deduction guide
-	state() -> state<>;
 
 	template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 	requires (N_r > 0 && N_s > 0)
@@ -52,11 +51,11 @@ namespace gillespie
 
 	protected:
 
-		std::array<std::valarray<long long>, N_r> nu; // stoichiometric vector
+		std::array<physics::vec<long long, N_s>, N_r> nu; // stoichiometric vector
 
 	public:
 
-		std::valarray<long long> x = std::valarray<long long>(N_s); // population numbers
+		physics::vec<long long, N_s> x; // population numbers
 		T t = 0; // time
 
 		gillespie() noexcept
@@ -130,7 +129,7 @@ namespace gillespie
 					break;
 		}
 
-		void simulate(std::vector<state<T>>& states, T t_final = 0, std::size_t max_steps = default_max_steps(), std::size_t n_sampling = 1)
+		void simulate(list_of_states<N_s, T>& states, T t_final = 0, std::size_t max_steps = default_max_steps(), std::size_t n_sampling = 1)
 		// simulate for max_steps steps or until t >= t_final, and save the states inside a list (initial and final state are included)
 		// set t_final to 0 or negative number for infinity
 		// n_sampling is the number of Gillespie algorithm steps for each sampling point
@@ -139,11 +138,15 @@ namespace gillespie
 			for (std::size_t i = 0; i < max_steps && (t <= t_final || t_final <= 0); ++i)
 			{
 				if (i % n_sampling == 0)
-					states.push_back({x, t});
+				{
+					states.x.push_back(x);
+					states.t.push_back(t);
+				}
 				if (!step(t_final))
 					break;
 			}
-			states.push_back({x, t});
+			states.x.push_back(x);
+			states.t.push_back(t);
 		}
 
 		virtual T a(std::size_t i) const = 0;

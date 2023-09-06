@@ -19,7 +19,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from statistics import mean, stdev
 from math import ceil
 import sys
 
@@ -46,25 +45,24 @@ g['Exact'] = gillespie.goldbeter_koshland(kfe=kfe, kbe=kbe, ke=ke, kfd=kfd, kbd=
 g['tQSSA'] = gillespie.goldbeter_koshland_tqssa(kME=kME, ke=ke, kMD=kMD, kd=kd, ET=ET, DT=DT, ST=ST)
 g['sQSSA'] = gillespie.goldbeter_koshland_sqssa(kME=kME, ke=ke, kMD=kMD, kd=kd, ET=ET, DT=DT, ST=ST)
 
-SP_hats = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
+SP_hats = {}
 init_conditions = {'Exact': [ST//2, 0, 0], 'tQSSA': [ST//2], 'sQSSA': [ST//2]}
-n_samplings = {'Exact': ceil((kfe+kbe+kfd+kbd)/(ke+kd)), 'tQSSA': 1, 'sQSSA': 1}
-max_t = 500
+max_t = 1000
 
 tracked_species = {
-	'Exact': [g['Exact'].species.SP, g['Exact'].species.CP],
-	'tQSSA': [g['tQSSA'].species.SP_hat],
-	'sQSSA': [g['sQSSA'].species.SP]
+	'Exact': np.array([g['Exact'].species.SP, g['Exact'].species.CP], dtype=int),
+	'tQSSA': np.array([g['tQSSA'].species.SP_hat], dtype=int),
+	'sQSSA': np.array([g['sQSSA'].species.SP], dtype=int)
 }
 
 for s in sim:
 	g[s].x = init_conditions[s]
 	g[s].t = 0
-	states = g[s].simulate(t_final=max_t, n_sampling=n_samplings[s])
-	SP_hats[s] = [sum([state.x[species] for species in tracked_species[s]]) for state in states]
+	x, _ = g[s].simulate(t_final=max_t)
+	SP_hats[s] = np.sum(x[:,tracked_species[s]], axis=1)
 
 for s in sim:
-	print(s, mean(SP_hats[s]), '+/-', stdev(SP_hats[s]))
+	print(s, np.mean(SP_hats[s]), '+/-', np.std(SP_hats[s]))
 
 bins = np.linspace(0, ST, 21)
 

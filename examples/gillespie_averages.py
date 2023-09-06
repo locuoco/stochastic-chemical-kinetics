@@ -38,8 +38,16 @@ g['Exact'] = gillespie.single_substrate(kf=kf, kb=kb, kcat=kcat, ET=ET, ST=ST)
 g['tQSSA'] = gillespie.single_substrate_tqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 g['sQSSA'] = gillespie.single_substrate_sqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 
-dPs = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
-ts  = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
+dPs = {
+	'Exact': np.array([], dtype=int),
+	'tQSSA': np.array([], dtype=int),
+	'sQSSA': np.array([], dtype=int)
+}
+ts = {
+	'Exact': np.array([], dtype=float),
+	'tQSSA': np.array([], dtype=float),
+	'sQSSA': np.array([], dtype=float)
+}
 n_simulations = {'Exact': 1000, 'tQSSA': 10000, 'sQSSA': 10000}
 init_conditions = {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
 max_t = 9
@@ -48,19 +56,17 @@ for s in sim:
 	for _ in range(n_simulations[s]):
 		g[s].x = init_conditions[s]
 		g[s].t = 0
-		states = g[s].simulate(t_final=max_t)
-		prods = [state.x[g[s].species.P] for state in states]
-		dprods = np.diff(prods)
-		times = [state.t for state in states]
-		dPs[s] += dprods.tolist()
-		ts[s] += times[1:]
+		x, t = g[s].simulate(t_final=max_t)
+		dprods = np.diff(x[:,g[s].species.P])
+		dPs[s] = np.append(dPs[s], dprods)
+		ts[s] = np.append(ts[s], t[1:])
 
 ndiv = max_t*50 + 1
 bins = np.linspace(0, max_t, ndiv)
 
 dy = {}
 for s in sim:
-	dprods = np.asarray(dPs[s]) / n_simulations[s]
+	dprods = dPs[s] / n_simulations[s]
 	dy[s], _ = np.histogram(ts[s], bins, weights=dprods)
 
 y = {}

@@ -26,14 +26,10 @@ import gillespie
 
 g = gillespie.single_substrate(kf=10, kb=9, kcat=1, ET=10, ST=9)
 
-states = g.simulate()
+x, t = g.simulate()
 
-Cs = [state.x[g.species.C] for state in states]
-Ps = [state.x[g.species.P] for state in states]
-times = [state.t for state in states]
-
-plt.plot(times, Cs, drawstyle='steps-post', label='C')
-plt.plot(times, Ps, drawstyle='steps-post', label='P')
+plt.plot(t, x[:,g.species.C], drawstyle='steps-post', label='C')
+plt.plot(t, x[:,g.species.P], drawstyle='steps-post', label='P')
 
 plt.xlabel('Time')
 plt.ylabel('Population')

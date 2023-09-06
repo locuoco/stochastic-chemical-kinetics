@@ -25,33 +25,25 @@ sys.path.append('../pybind')
 
 import cme
 
-ET = 10
-ST = 9
-
-c = cme.single_substrate(kf=10, kb=9, kcat=1, ET=ET, ST=ST)
-
-def get_probabilities():
-	prob = np.array(c.get_state().p)
-	prob = np.reshape(prob, (ET+1, ST+1))
-	return prob
+c = cme.single_substrate(kf=10, kb=9, kcat=1, ET=10, ST=9)
 
 fig = plt.figure()
 ax = plt.axes()
-im = ax.imshow(get_probabilities(), norm=colors.SymLogNorm(1e-20), origin='lower')
+im = ax.imshow(c.p, norm=colors.SymLogNorm(1e-20), origin='lower')
 plt.colorbar(im, ax=ax, label='Probability')
 im.set_clim(1e-10, 1)
 
 annot = ax.annotate('Time: 0.000', (0.09, 0.92), xycoords='figure fraction')
 
 def init():
-	im.set_data(get_probabilities())
+	im.set_data(c.p)
 	annot.set_text('Time: 0.000')
 	return im, annot
 
 def animate(i):
 	current_t = i*0.002
 	c.simulate(dt=1e-4, t_final=current_t, noreturn=True)
-	im.set_data(get_probabilities())
+	im.set_data(c.p)
 	annot.set_text('Time: {:.3f}'.format(current_t))
 	return im, annot
 

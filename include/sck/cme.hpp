@@ -31,14 +31,11 @@
 namespace cme
 {
 	template <std::floating_point T = double>
-	struct state
+	struct list_of_states
 	{
-		std::valarray<T> p;
-		T t;
+		std::vector<T> p;
+		std::vector<T> t;
 	};
-
-	// template argument deduction guide
-	state() -> state<>;
 
 	template <std::size_t N_s, std::size_t N_r, std::floating_point T = double>
 	requires (N_r > 0 && N_s > 0)
@@ -50,11 +47,10 @@ namespace cme
 	{
 		static constexpr std::size_t moments_max_order = 3;
 
-		physics::vec<long long, N_s> n_max;
+		std::array<long long, N_s> n_max;
 		mutable physics::vec<long long, N_s> x;
 		mutable std::array<std::array<T, moments_max_order+1>, N_s> m;
-		std::valarray<T> p, dp;
-		T t = 0;
+		std::valarray<T> dp;
 		mutable bool calculated_stats = false;
 
 		long long n_elems() const noexcept
@@ -115,7 +111,10 @@ namespace cme
 
 	public:
 
-		cme(const physics::vec<long long, N_s>& n_max)
+		std::valarray<T> p;
+		T t = 0;
+
+		cme(const std::array<long long, N_s>& n_max)
 			: n_max(n_max)
 		// constructor
 		//	n_max: max population numbers (we must consider a finite number of possible states to make the problem computable)
@@ -130,6 +129,11 @@ namespace cme
 		}
 
 		virtual ~cme() = default;
+
+		std::size_t get_shape_index(std::size_t i) const noexcept
+		{
+			return n_max[i];
+		}
 
 		std::size_t get_index(const std::array<long long, N_s>& y) const noexcept
 		// get index from population numbers y
@@ -205,7 +209,7 @@ namespace cme
 		}
 
 		template <typename Integ>
-		[[maybe_unused]] std::size_t simulate(Integ& integ, std::vector<state<T>>& states, T dt, T t_final, std::size_t n_sampling = 1)
+		[[maybe_unused]] std::size_t simulate(Integ& integ, list_of_states<T>& states, T dt, T t_final, std::size_t n_sampling = 1)
 		// simulate until t >= t_final, and save the states inside a list (initial and final states are included)
 		// dt is the integration step
 		// n_sampling is the number of integration steps for each sampling point
@@ -215,24 +219,17 @@ namespace cme
 			for (i = 0; t <= t_final; ++i)
 			{
 				if (i % n_sampling == 0)
-					states.push_back({p, t});
+				{
+					for (const auto& prob : p)
+						states.p.push_back(prob);
+					states.t.push_back(t);
+				}
 				step(integ, dt);
 			}
-			states.push_back({p, t});
+			for (const auto& prob : p)
+				states.p.push_back(prob);
+			states.t.push_back(t);
 			return i;
-		}
-
-		state<T> get_state() const noexcept
-		// return the current state
-		{
-			return {p, t};
-		}
-
-		void set_state(const state<T>& s) noexcept
-		// set the current state
-		{
-			p = s.p;
-			t = s.t;
 		}
 
 		T mean(std::size_t s_i) const
