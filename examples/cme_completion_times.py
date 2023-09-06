@@ -59,11 +59,11 @@ def weighted_ave_sd(arr, weights):
 	variance = np.average((arr-average)**2, weights=weights)
 	return average, np.sqrt(variance)
 
-for s in sim:
-	average, sd = weighted_ave_sd(bins[1:], weights=completion_time_weights[s])
-	print(s, average, '+/-', sd)
-
 t = (bins[1:] + bins[:-1])/2
+
+for s in sim:
+	average, sd = weighted_ave_sd(t, weights=completion_time_weights[s])
+	print(s, average, '+/-', sd)
 
 plt.hist(t, bins, weights=completion_time_weights['Exact'], label='Exact', density=True, color='blue', histtype='step', fill=False)
 plt.hist(t, bins, weights=completion_time_weights['tQSSA'], label='tQSSA', density=True, color='red', alpha=.6)
