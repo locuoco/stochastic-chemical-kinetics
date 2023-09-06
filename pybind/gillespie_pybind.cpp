@@ -23,7 +23,6 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 #include <optional>
 #include <vector>
-#include <memory> // shared_ptr
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -48,30 +47,28 @@ void class_defs(py::class_<Class>& c)
 			}
 			else
 			{
-				std::shared_ptr<list_of_states<Class::num_species>>* states
-					= new std::shared_ptr(std::make_shared<list_of_states<Class::num_species>>());
-				states = new std::shared_ptr(*states);
+				list_of_states<Class::num_species>* states = new list_of_states<Class::num_species>();
 
-				self.simulate(**states, t_final, max_steps, n_sampling);
+				self.simulate(*states, t_final, max_steps, n_sampling);
 
 				py::capsule free_when_done(
 					states,
 					[](void* f)
 					{
-						delete reinterpret_cast<std::shared_ptr<list_of_states<Class::num_species>>*>(f);
+						delete reinterpret_cast<list_of_states<Class::num_species>*>(f);
 					}
 				);
 				return py::make_tuple<py::return_value_policy::take_ownership>(
 						py::array_t<long long>(
-							{(long long)(*states)->x.size(), (long long)Class::num_species},
+							{(long long)states->x.size(), (long long)Class::num_species},
 							{(long long)(Class::num_species*sizeof(long long)), (long long)sizeof(long long)},
-							reinterpret_cast<long long*>((*states)->x.data()),
+							reinterpret_cast<long long*>(states->x.data()),
 							free_when_done
 						),
 						py::array_t<double>(
-							{(*states)->t.size()},
+							{states->t.size()},
 							{sizeof(double)},
-							(*states)->t.data(),
+							states->t.data(),
 							free_when_done
 						)
 					);

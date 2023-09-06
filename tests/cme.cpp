@@ -38,7 +38,7 @@ void test_cme_tqssa()
 
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
-	double t = 1, dt = 1e-4;
+	double t = 2, dt = 1e-4;
 
 	runge_kutta::ralston4 integ; // 4-th order Runge-Kutta integrator
 

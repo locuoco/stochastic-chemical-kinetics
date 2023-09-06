@@ -1,5 +1,5 @@
 '''
-    Stochastic enzyme kinetics: completion times histogram
+    Stochastic enzyme kinetics: completion times histogram using Gillespie algorithm
     Copyright (C) 2023 Alessandro Lo Cuoco (alessandro.locuoco@gmail.com)
 
     This program is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ completion_times = {
 	'tQSSA': np.empty((n_simulations,)),
 	'sQSSA': np.empty((n_simulations,))
 }
-init_conditions =  {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
+init_conditions = {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
 
 for s in sim:
 	for i in range(n_simulations):
@@ -65,7 +65,7 @@ plt.hist(completion_times['tQSSA'], bins, label='tQSSA', density=True, color='re
 plt.hist(completion_times['sQSSA'], bins, label='sQSSA', density=True, color='gray', alpha=.3)
 
 plt.ylim(0, .4)
-plt.xlabel('Completion time ($\tau$)')
+plt.xlabel('Completion time (τ)')
 plt.ylabel('Probability density')
 plt.legend()
 

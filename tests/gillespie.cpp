@@ -50,7 +50,7 @@ void test_gillespie_tqssa_prod()
 		sys1.simulate(t);
 		P1 += sys1.x[sys1.P];
 	}
-	P1 /= n*ST;
+	P1 /= n;
 
 	for (std::size_t i = 0; i < n; ++i)
 	{
@@ -59,7 +59,7 @@ void test_gillespie_tqssa_prod()
 		sys2.simulate(t);
 		P2 += sys2.x[sys2.P];
 	}
-	P2 /= n*ST;
+	P2 /= n;
 
 	std::cout << P1 << '\n';
 	std::cout << P2 << '\n';

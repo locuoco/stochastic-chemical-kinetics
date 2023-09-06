@@ -192,7 +192,6 @@ namespace cme
 				return dp;
 			};
 			integ.step(p, dt, f);
-			p += dp * dt;
 			t += dt;
 		}
 

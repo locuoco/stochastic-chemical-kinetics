@@ -23,7 +23,6 @@ g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic 
 
 #include <optional>
 #include <vector>
-#include <memory> // shared_ptr
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -48,20 +47,19 @@ void class_integ(py::class_<Class>& c)
 			}
 			else
 			{
-				std::shared_ptr<list_of_states<>>* states = new std::shared_ptr(std::make_shared<list_of_states<>>());
-				states = new std::shared_ptr(*states);
+				list_of_states<>* states = new list_of_states<>();
 
-				self.simulate(integ, **states, dt, t_final, n_sampling);
+				self.simulate(integ, *states, dt, t_final, n_sampling);
 
 				py::capsule free_when_done(
 					states,
 					[](void* f)
 					{
-						delete reinterpret_cast<std::shared_ptr<list_of_states<>>*>(f);
+						delete reinterpret_cast<list_of_states<>*>(f);
 					}
 				);
 				std::array<long long, Class::num_species+1> shape, stride;
-				shape[0] = (*states)->p.size();
+				shape[0] = states->p.size() / self.p.size();
 				for (std::size_t i = 1; i < Class::num_species+1; ++i)
 					shape[i] = self.get_shape_index(i-1);
 				stride[Class::num_species] = sizeof(double);
@@ -71,13 +69,13 @@ void class_integ(py::class_<Class>& c)
 						py::array_t<double>(
 							shape,
 							stride,
-							(*states)->p.data(),
+							states->p.data(),
 							free_when_done
 						),
 						py::array_t<double>(
-							{(long long)(*states)->t.size()},
+							{(long long)states->t.size()},
 							{(long long)sizeof(double)},
-							(*states)->t.data(),
+							states->t.data(),
 							free_when_done
 						)
 					);
@@ -128,18 +126,6 @@ void class_integ(py::class_<Class>& c)
 template <typename Class>
 void class_defs(py::class_<Class>& c)
 {
-	c.def("get_index",
-		[](const Class& self, const std::array<long long, Class::num_species>& y)
-		{
-			return self.get_index(y);
-		},
-		py::arg("pop"));
-	c.def("get_pop",
-		[](const Class& self, std::size_t index)
-		{
-			return self.get_pop(index);
-		},
-		py::arg("index"));
 	class_integ<integrator<>>(c);
 	c.def("mean", Class::mean, py::arg("s_i"));
 	c.def("msq", Class::msq, py::arg("s_i"));
