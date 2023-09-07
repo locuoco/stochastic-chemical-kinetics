@@ -43,13 +43,13 @@ msqPs = {}
 ts = {}
 marginal_axes = {'Exact': (int(c['Exact'].species.C)+1), 'tQSSA': (), 'sQSSA': ()}
 max_t = 9
-Ps = np.arange(0, ST+1)
+possible_Ps = np.arange(0, ST+1)
 
 for s in sim:
 	prob, ts[s] = c[s].simulate(dt=1e-4, t_final=max_t, n_sampling=100)
 	marginal_prob = np.sum(prob, axis=marginal_axes[s])
-	avePs[s] = np.tensordot(marginal_prob, Ps, axes=1)
-	msqPs[s] = np.tensordot(marginal_prob, Ps**2, axes=1)
+	avePs[s] = np.tensordot(marginal_prob, possible_Ps, axes=1)
+	msqPs[s] = np.tensordot(marginal_prob, possible_Ps**2, axes=1)
 
 for s in sim:
 	error = np.sqrt(np.maximum(msqPs[s] - avePs[s]**2, 0))

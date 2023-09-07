@@ -38,11 +38,13 @@ g['Exact'] = gillespie.single_substrate(kf=kf, kb=kb, kcat=kcat, ET=ET, ST=ST)
 g['tQSSA'] = gillespie.single_substrate_tqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 g['sQSSA'] = gillespie.single_substrate_sqssa(kM=kM, kcat=kcat, ET=ET, ST=ST)
 
-dPs = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
-ts = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
-n_simulations = 20000
+hists = {'Exact': [], 'tQSSA': [], 'sQSSA': []}
+n_simulations = 5000
 init_conditions = {'Exact': [0, 0], 'tQSSA': [0], 'sQSSA': [0]}
 max_t = 9
+
+ndiv = max_t*50 + 1
+bins = np.linspace(0, max_t, ndiv)
 
 for s in sim:
 	for _ in range(n_simulations):
@@ -50,33 +52,23 @@ for s in sim:
 		g[s].t = 0
 		x, t = g[s].simulate(t_final=max_t)
 		dprods = np.diff(x[:,g[s].species.P])
-		dPs[s] += dprods.tolist()
-		ts[s] += t[1:].tolist()
-	dPs[s] = np.array(dPs[s])
-	ts[s] = np.array(ts[s])
+		dhist, _ = np.histogram(t[1:], bins, weights=dprods)
+		hists[s].append(np.cumsum(dhist))
+	hists[s] = np.array(hists[s])
 
-ndiv = max_t*50 + 1
-bins = np.linspace(0, max_t, ndiv)
-
-dy = {}
+avePs = {}
+msqPs = {}
 for s in sim:
-	dprods = dPs[s] / n_simulations
-	dy[s], _ = np.histogram(ts[s], bins, weights=dprods)
+	avePs[s] = np.sum(hists[s], axis=0) / hists[s].shape[0]
+	msqPs[s] = np.sum(hists[s]**2, axis=0) / hists[s].shape[0]
 
-y = {}
-var = {}
-dx = bins[1] - bins[0]
-for s in sim:
-	y[s] = np.cumsum(dy[s])
-	var[s] = y[s]/ST*dy[s]/dx
-
-x = (bins[1:] + bins[:-1])/2
+t = (bins[1:] + bins[:-1])/2
 
 for s in sim:
-	error = np.sqrt(var[s])
+	error = np.sqrt(np.maximum(msqPs[s] - avePs[s]**2, 0))
 
-	plt.plot(x, y[s], label=s)
-	plt.fill_between(x, 0, error, alpha=.3)
+	plt.plot(t, avePs[s], label=s)
+	plt.fill_between(t, 0, error, alpha=.3)
 
 plt.ylim(0)
 plt.xlabel('Time')
