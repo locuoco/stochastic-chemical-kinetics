@@ -1,5 +1,5 @@
 '''
-    Stochastic enzyme kinetics: Stochastic enzyme kinetics averages plot
+    Stochastic enzyme kinetics: Stochastic enzyme kinetics averages plot using Gillespie
     Copyright (C) 2023 Alessandro Lo Cuoco (alessandro.locuoco@gmail.com)
 
     This program is free software: you can redistribute it and/or modify
@@ -74,7 +74,7 @@ var = {}
 dx = bins[1] - bins[0]
 for s in sim:
 	y[s] = np.cumsum(dy[s])
-	var[s] = y[s]*dy[s]/dx
+	var[s] = y[s]/ST*dy[s]/dx
 
 x = (bins[1:] + bins[:-1])/2
 
@@ -86,7 +86,7 @@ for s in sim:
 
 plt.ylim(0)
 plt.xlabel('Time')
-plt.ylabel('Products count (average, $P$)')
+plt.ylabel('Products count (average and st. dev., $P$)')
 plt.legend()
 
 plt.show()
