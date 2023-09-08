@@ -39,7 +39,13 @@ is the difference of population counts involved in a single reaction (i.e., the 
 $a_n (\mathbf{x})$
 are the propensity functions (the transition rates for a particular reaction
 $n$
-).
+). The propensity functions can be seen as the elements of the transition-rate matrix
+$A_{ij}$
+for a general master equation:
+
+```math
+\frac{d\mathbf{P}(t)}{dt} = A \mathbf{P}(t).
+```
 
 Sunkara (2019) found an equivalent formulation of the CME, where the probability of certain species counts
 $\mathbf{x}\in\mathbb{N}^{N_s}$
@@ -121,14 +127,14 @@ and, finally, carry out the reaction by replacing
 t \leftarrow t + \tau, \qquad \mathbf{x} \leftarrow \mathbf{x} + \mathbf{\nu}_j.
 ```
 
-Note that, since we require a large amount of realizations to obtain statistically significant results, stochastic simulation algorithm can be slower than direct integration of the CME for systems with few chemical species or small populations. In practice, this algorithm is useful when solving the CME direcly would be prohibitively expensive in terms of computational time.
+Note that, since we require a large amount of realizations to obtain statistically significant results, stochastic simulation algorithm can be slower than direct integration of the CME for systems with few chemical species or small populations. In practice, this algorithm is useful when solving the CME directly would be prohibitively expensive in terms of required memory or computational time.
 
 ## Single-substrate enzyme-catalyzed reaction
 
 A single-substrate enzyme-catalyzed reaction can be described by the following chain of reactions
 
 ```math
-E + S \rightleftarrows C \rightarrow P + S
+E + S \overset{k_f}{\underset{k_b}\rightleftarrows} C \xrightarrow{k_\textrm{cat}} P + S
 ```
 
 which correspond, due to the mass action law, to the following system of ordinary differential equations (ODEs):
@@ -253,4 +259,82 @@ $`[S_T] = [\hat{S}] + [P]`$
 holds exactly.
 
 ### Stochastic enzyme kinetics
+The propensity functions for a single-substrate enzyme-catalyzed reaction are associated to each reaction channel:
+
+```math
+E + S \xrightarrow{\kappa_f} C, \qquad C \xrightarrow{\kappa_b} E + S, \qquad C \xrightarrow{\kappa_\textrm{cat}} E + P.
+```
+
+So, the three propensity functions are given by
+
+```math
+a_f (E, S) = \kappa_f E S, \qquad a_b (C) = \kappa_b C, \qquad a_\textrm{cat} (C) = \kappa_\textrm{cat} C,
+```
+
+where
+$E,S,C,P$
+refer to the numbers of molecules for the different chemical species rather than their concentrations. The relation between a population number
+$X$
+and the relative molar concentration
+$[X]$
+is
+
+```math
+[X] = \frac{X}{N_A \Omega},
+```
+
+where
+$`N_A`$
+is the Avogadro constant and
+$\Omega$
+is the total volume of the system. The constants
+$`\kappa_i`$
+are related to the constants
+$`k_i`$
+used in the ODE treatment of the reaction rates (Cao and Samuels, 2009):
+
+```math
+\kappa_f = \frac{k_f}{N_A \Omega}, \qquad \kappa_b = k_b, \qquad \kappa_\textrm{cat} = k_\textrm{cat}.
+```
+
+Remembering that we have only two independent variables thanks to the conservation of
+$`S_T = S + C + P`$
+and
+$`E_T = E + T`$
+, the CME gives
+
+```math
+\frac{\partial p(C,P,t)}{\partial t} = a_f (C-1, P) p(C-1, P, t) + a_b (C+1) p(C+1, P, t) + a_\textrm{cat} (C+1) p(C+1, P-1, t) - a_0 (C, P) p(C, P, t).
+```
+
+where
+$`a_f (C, P) = \kappa_f (E_T - C) (S_T - C - P)`$
+and
+$`a_0 (C, P) = a_f (C, P) + a_b (C) + a_\textrm{cat} (C)`$
+. The Gillespie algorithm for this system is directly obtained from the propensity functions. Note that we can perform the tQSSA in the stochastic formulation as in the deterministic one by using only one propensity function
+$a (\hat{S})$
+(Kim and Tyson, 2020), i.e.:
+
+```math
+a (\hat{S}) = \frac{2 \kappa_\textrm{cat} E_T \hat{S}}{E_T + \hat{S} + \kappa_M + \sqrt{(E_T + \hat{S} + \kappa_M)^2 - 4 E_T \hat{S}}},
+```
+
+where
+$`\hat{S} = S + C = S_T - P`$
+and
+$`\kappa_M = \frac{\kappa_b + \kappa_\textrm{cat}}{\kappa_f}`$
+, related to the usual Michaelis-Menten constant through
+
+```math
+\kappa_M = K_M N_A \Omega.
+```
+
+This can be viewed as having only one monomolecular reaction described by
+
+```math
+\hat{S} \rightarrow P.
+```
+
+## Goldbeter-Koshland switch
+
 ...TODO...
