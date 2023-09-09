@@ -52,8 +52,7 @@ $\mathbf{x}\in\mathbb{N}^{N_s}$
 is substituted with the probability of certain reaction counts
 $\mathbf{r}\in\mathbb{N}^{N_r}$
 from a certain initial state
-$\mathbf{x}_0$
-:
+$\mathbf{x}_0:$
 
 ```math
 \frac{\partial p(\mathbf{r},t)}{\partial t} = \sum_{n=1}^{N_r} a_n (\mathbf{r} - \mathbf{1}_n) p(\mathbf{r} - \mathbf{1}_n, t) - \sum_{n=1}^{N_r} a_n (\mathbf{r}) p(\mathbf{r}, t),
@@ -68,8 +67,8 @@ is the Kronecker delta. This formulation may be more convenient since it leads t
 ```
 
 Note that this map is not in general bijective. Given a solution to the reaction count CME
-$p(\mathbf{r},t)$
-, we obtain the probabilities associated to each state at time
+$p(\mathbf{r},t),$
+we obtain the probabilities associated to each state at time
 $t$
 through
 
@@ -80,8 +79,8 @@ p(\mathbf{x},t) = \sum_{\mathbf{r}\in\Gamma_\mathbf{x}} p(\mathbf{r},t),
 where
 $`\Gamma_\mathbf{x} := \left\{\mathbf{r} \middle| \mathbf{x} = \mathbf{x}_0 + \Sigma_{n=1}^{N_r} \mathbf{\nu}_n r_n \right\}`$
 is the set of reaction counts that gives the same population counts
-$\mathbf{x}$
-. One problem with this formulation is that the reaction count itself is unbounded: for practical purposes, one can choose to limit the total number of reactions, as long as this choice does not affect the accuracy of the result (this choice will depend on the required length of the simulation).
+$\mathbf{x}.$
+One problem with this formulation is that the reaction count itself is unbounded: for practical purposes, one can choose to limit the total number of reactions, as long as this choice does not affect the accuracy of the result (this choice will depend on the required length of the simulation).
 
 Both these formulations can be casted into a system of ordinary differential equations with many different variables depending on the maximum allowed population numbers or reaction numbers. For small enough systems, these equations can be simply solved using a standard integration method, for example a Runge-Kutta method. However, we are quickly caught by the curse of dimensionality for systems with many chemical species: a lot of computer memory may be required to perform a simulation.
 
@@ -94,8 +93,8 @@ An alternative way to solve the CME is through a Monte-Carlo method, i.e., perfo
 ```
 
 where
-$`a_0 (\mathbf{x}) = \Sigma_{n=1}^{N_r} a_n (\mathbf{x})`$
-, while
+$`a_0 (\mathbf{x}) = \Sigma_{n=1}^{N_r} a_n (\mathbf{x}),`$
+while
 $\tau$
 is the time between a reaction and the next one and
 $j$
@@ -104,8 +103,8 @@ $\tau$
 is shown to be an exponentially distributed random variable, while
 $j$
 is a statistically independent integer random variable with point probabilities
-$`a_j (\mathbf{x}) / a_0 (\mathbf{x})`$
-. Thus, the Monte-Carlo method is to draw two uniform (pseudo)random numbers
+$`a_j (\mathbf{x}) / a_0 (\mathbf{x}).`$
+Thus, the Monte-Carlo method is to draw two uniform (pseudo)random numbers
 $r_1, r_2 \in U(0,1)$
 and then compute
 
@@ -134,19 +133,19 @@ Note that, since we require a large amount of realizations to obtain statistical
 A single-substrate enzyme-catalyzed reaction can be described by the following chain of reactions
 
 ```math
-E + S \overset{k_f}{\underset{k_b}\rightleftarrows} C \xrightarrow{k_\textrm{cat}} P + S
+E + S \overset{k_f}{\underset{k_b}\rightleftarrows} C \xrightarrow{k_\textrm{cat}} E + P
 ```
 
 which correspond, due to the mass action law, to the following system of ordinary differential equations (ODEs):
 
 ```math
-\frac{d[S]}{dt} = -k_f [S] [E] + k_b [C],
+\frac{d[S]}{dt} = -k_f [E] [S] + k_b [C],
 ```
 ```math
-\frac{d[E]}{dt} = -k_f [S] [E] + k_b [C] + k_\textrm{cat} [C],
+\frac{d[E]}{dt} = -k_f [E] [S] + k_b [C] + k_\textrm{cat} [C],
 ```
 ```math
-\frac{d[C]}{dt} =  k_f [S] [E] - k_b [C] - k_\textrm{cat} [C],
+\frac{d[C]}{dt} =  k_f [E] [S] - k_b [C] - k_\textrm{cat} [C],
 ```
 ```math
 \frac{d[P]}{dt} = k_\textrm{cat} [C],
@@ -163,19 +162,18 @@ $[P]$
 is the product molar concentration. From the conservation of the total enzyme concentration, we have
 $`[E_T] := [E] + [C]`$
 such that
-$`\frac{d}{dt}[E_T]=0`$
-. From the conservation of the total substrate and product concentration, we have
+$`\frac{d}{dt}[E_T]=0.`$
+From the conservation of the total substrate and product concentration, we have
 $`[S_T] := [S] + [C] + [P]`$
 such that
-$`\frac{d}{dt}[S_T]=0`$
-. The existence of these constants means that there are only two independent ODEs to solve, corresponding to two independent variables, for example
+$`\frac{d}{dt}[S_T]=0.`$
+The existence of these constants means that there are only two independent ODEs to solve, corresponding to two independent variables, for example
 $[C]$
 and
-$[P]$
-:
+$[P]:$
 
 ```math
-\frac{d[C]}{dt} =  k_f ([S_T] - [C] - [P]) ([E_T] - [C]) - k_b [C] - k_\textrm{cat} [C],
+\frac{d[C]}{dt} =  k_f ([E_T] - [C]) ([S_T] - [C] - [P]) - k_b [C] - k_\textrm{cat} [C],
 ```
 ```math
 \frac{d[P]}{dt} = k_\textrm{cat} [C],
@@ -197,8 +195,7 @@ varies appreciably. Mathematically speaking, we require that
 from which we obtain a closed expression for the enzyme-substrate complex concentration
 $[C]$
 as a function of the substrate concentration
-$[S]$
-:
+$[S]:$
 
 ```math
 [C] = \frac{[E_T] [S]}{[S] + K_M},
@@ -213,14 +210,14 @@ is the Michaelis-Menten constant. Substituting in the products rate equation, we
 ```
 
 which is the Michaelis-Menten rate law. Segel and Slemrod (1989) showed that this approximation is valid for
-$`[E] \ll [S] + [P] + K_M`$
-, which also implies that
+$`[E] \ll [S] + [P] + K_M,`$
+which also implies that
 $[C]$
 is negligible with respect to the total substrate-product concentration:
-$[C] \ll [S] + [P]$
-. This enables us to make another approximation:
-$`[S_T] \approx [S] + [P]`$
-, so we do not need to know
+$[C] \ll [S] + [P].$
+This enables us to make another approximation:
+$`[S_T] \approx [S] + [P],`$
+so we do not need to know
 $[C]$
 to compute the time evolution of concentration of substrates and products.
 
@@ -233,8 +230,7 @@ $d[C]/dt \approx 0$, i.e.:
 ```
 
 Following the same steps as before, we obtain the following expression for
-$[C]$
-:
+$[C]:$
 
 ```math
 [C] = \frac{1}{2} \left([E_T] + [\hat{S}] + K_M - \sqrt{([E_T] + [\hat{S}] + K_M)^2 - 4 [E_T] [\hat{S}]}\right).
@@ -247,8 +243,7 @@ From the validity condition given by Tzafriri (2003), one can show that this app
 ```
 
 which can also be rewritten so that it is more computationally stable for small values of
-$[\hat{S}]$
-:
+$[\hat{S}]:$
 
 ```math
 \frac{d[P]}{dt} = \frac{2 k_\textrm{cat} [E_T] [\hat{S}]}{[E_T] + [\hat{S}] + K_M + \sqrt{([E_T] + [\hat{S}] + K_M)^2 - 4 [E_T] [\hat{S}]}}.
@@ -300,18 +295,18 @@ used in the ODE treatment of the reaction rates (Cao and Samuels, 2009):
 Remembering that we have only two independent variables thanks to the conservation of
 $`S_T = S + C + P`$
 and
-$`E_T = E + T`$
-, the CME gives
+$`E_T = E + T,`$
+the CME gives
 
 ```math
-\frac{\partial p(C,P,t)}{\partial t} = a_f (C-1, P) p(C-1, P, t) + a_b (C+1) p(C+1, P, t) + a_\textrm{cat} (C+1) p(C+1, P-1, t) - a_0 (C, P) p(C, P, t).
+\frac{\partial p(C,P,t)}{\partial t} = a_f (C-1, P) p(C-1, P, t) + a_b (C+1) p(C+1, P, t) + a_\textrm{cat} (C+1) p(C+1, P-1, t) - a_0 (C, P) p(C, P, t),
 ```
 
 where
 $`a_f (C, P) = \kappa_f (E_T - C) (S_T - C - P)`$
 and
-$`a_0 (C, P) = a_f (C, P) + a_b (C) + a_\textrm{cat} (C)`$
-. The Gillespie algorithm for this system is directly obtained from the propensity functions. Note that we can perform the tQSSA in the stochastic formulation as in the deterministic one by using only one propensity function
+$`a_0 (C, P) = a_f (C, P) + a_b (C) + a_\textrm{cat} (C).`$
+The Gillespie algorithm for this system is directly obtained from the propensity functions. Note that we can perform the tQSSA in the stochastic formulation as in the deterministic one by using only one propensity function
 $a (\hat{S})$
 (Kim and Tyson, 2020), i.e.:
 
@@ -322,8 +317,8 @@ a (\hat{S}) = \frac{2 \kappa_\textrm{cat} E_T \hat{S}}{E_T + \hat{S} + \kappa_M 
 where
 $`\hat{S} = S + C = S_T - P`$
 and
-$`\kappa_M = \frac{\kappa_b + \kappa_\textrm{cat}}{\kappa_f}`$
-, related to the usual Michaelis-Menten constant through
+$`\kappa_M = \frac{\kappa_b + \kappa_\textrm{cat}}{\kappa_f},`$
+related to the usual Michaelis-Menten constant through
 
 ```math
 \kappa_M = K_M N_A \Omega.
@@ -337,4 +332,141 @@ This can be viewed as having only one monomolecular reaction described by
 
 ## Goldbeter-Koshland switch
 
-...TODO...
+The Goldbeter-Koshland (GK) switch consists of a substrate-product pair
+$`S,S_P`$
+that is interconverted by two enzymes
+$E,D:$
+
+```math
+E + S \overset{k_{fe}}{\underset{k_{be}}\rightleftarrows} C \xrightarrow{k_e} E + S_P
+```
+```math
+D + S_P \overset{k_{fd}}{\underset{k_{bd}}\rightleftarrows} C_P \xrightarrow{k_d} D + S
+```
+
+These reactions are commonly used to describe phosphorylation and dephosphorylation processes, where
+$S$
+is phosphorylated by kinase
+$E$
+and
+$`S_P`$
+is dephosphorylated by phosphatase
+$D$
+. From the law of mass action we obtain these six differential equations:
+
+```math
+\frac{d[S]}{dt} = -k_{fe} [E] [S] + k_{be} [C] + k_d [C_P],
+```
+```math
+\frac{d[S_P]}{dt} = -k_{fd} [D] [S_P] + k_{bd} [C_P] + k_e [C],
+```
+```math
+\frac{d[E]}{dt} = -k_{fe} [E] [S] + k_{be} [C] + k_e [C],
+```
+```math
+\frac{d[D]}{dt} = -k_{fd} [D] [S_P] + k_{bd} [C_P] + k_d [C_P],
+```
+```math
+\frac{d[C]}{dt} =  k_{fe} [E] [S] - k_{be} [C] - k_e [C],
+```
+```math
+\frac{d[C_P]}{dt} =  k_{fd} [D] [S_P] - k_{bd} [C_P] - k_d [C_P].
+```
+
+Like for the single-substrate case, we have conserved quantities: the total substrate concentration
+$`[S_T] := [S] + [S_P] + [C] + [C_P],`$
+the total kinase concentration
+$`[E_T] := [E] + [C]`$
+and the total phosphatase concentration
+$`[D_T] := [D] + [C_P].`$
+Having these three conserved quantities, only three of the above differential equations are independent. For example, we can choose
+
+```math
+\frac{d[S_P]}{dt} = -k_{fd} ([D_T] - [C_P]) [S_P] + k_{bd} [C_P] + k_e [C],
+```
+```math
+\frac{d[C]}{dt} =  k_{fe} ([E_T] - [C]) ([S_T] - [S_P] - [C] - [C_P]) - k_{be} [C] - k_e [C],
+```
+```math
+\frac{d[C_P]}{dt} =  k_{fd} ([D_T] - [C_P]) [S_P] - k_{bd} [C_P] - k_d [C_P].
+```
+
+The QSSA can be obtained by assuming
+
+```math
+\frac{d[C]}{dt} \approx 0, \qquad \frac{d[C_P]}{dt} \approx 0,
+```
+
+from which we obtain
+
+```math
+[C] = \frac{[E_T][S]}{K_{ME} + [S]}, \qquad [C_P] = \frac{[D_T][S_P]}{K_{MD} + [S_P]},
+```
+
+where
+
+```math
+K_{ME} = \frac{k_{be} + k_e}{k_{fe}}, \qquad K_MD = \frac{k_{bd} + k_d}{k_{fd}}.
+```
+
+Substituting into the equation for
+$`d[S_P]/dt:`$
+
+```math
+\frac{d[S_P]}{dt} = \frac{k_e [E_T][S]}{K_{ME} + [S]} - \frac{k_d [D_T][S_P]}{K_{MD} + [S_P]}.
+```
+
+Note that
+$`[S_T] \approx [S] + [S_P].`$
+The tQSSA is obtained by making two variable changes:
+
+```math
+[\hat{S}] := [S] + [C], \qquad [\hat{S}_P] = [S_P] + [C_P].
+```
+
+Then, applying the quasi-steady state condition as before, we obtain the following expression for the phosphorylated substrate concentration:
+
+```math
+\frac{d[S_P]}{dt} = \frac{2 k_e [E_T][\hat{S}]}{[E_T] + [\hat{S}] + K_{ME} + \sqrt{\left([E_T] + [\hat{S}] + K_{ME}\right)^2 - 4 [E_T] [\hat{S}]}}
+- \frac{2 k_d [D_T][\hat{S}_P]}{[D_T] + [\hat{S}_P] + K_{MD} + \sqrt{\left([D_T] + [\hat{S}_P] + K_{MD}\right)^2 - 4 [D_T] [\hat{S}_P]}}.
+```
+
+Note that
+$`[S_T] = [\hat{S}] + [\hat{S}_P]`$
+holds exactly. For the stochastic formulation of the GK switch, we recognize six propensity functions related to the six reaction channels
+
+```math
+E + S \xrightarrow{\kappa_{fe}} C, \qquad C \xrightarrow{\kappa_{be}} E + S, \qquad C \xrightarrow{\kappa_e} E + S_P,
+```
+```math
+D + S_P \xrightarrow{\kappa_{fd}} C_P, \qquad C_P \xrightarrow{\kappa_{bd}} D + S_P, \qquad C_P \xrightarrow{\kappa_d} D + S.
+```
+
+Choosing the coordinates
+$`S_P, C, C_P`$
+as the independent variables, the propensity functions are given by
+
+```math
+a_{fe} (S_P, C, C_P) = \kappa_{fe} (E_T - C) (S_T - S_P - C - C_P), \qquad a_{be} (C) = \kappa_{be} C, \qquad a_e (C) = \kappa_e C,
+```
+```math
+a_{fd} (S_P, C_P) = \kappa_{fd} (D_T - C_P) S_P, \qquad a_{bd} (C_P) = \kappa_{bd} C_P, \qquad a_d (C_P) = \kappa_d C_P.
+```
+
+For stochastic tQSSA, we have only two reactions corresponding to
+
+```math
+\hat{S} \rightleftarrows \hat{S}_P,
+```
+
+for which the propensity functions are given by
+
+```math
+a_e (\hat{S}) = \frac{2 k_e E_T \hat{S}}{E_T + \hat{S} + K_{ME} + \sqrt{\left(E_T + \hat{S} + K_{ME}\right)^2 - 4 E_T \hat{S}}}, \qquad
+a_d (\hat{S}_P) = \frac{2 k_d D_T \hat{S}_P}{D_T + \hat{S}_P + K_{MD} + \sqrt{\left(D_T + \hat{S}_P + K_{MD}\right)^2 - 4 D_T \hat{S}_P}},
+```
+
+with only one independent variable since
+$`\hat{S},\hat{S}_P`$
+are related by
+$`\hat{S} = S_T - \hat{S}_P.`$
