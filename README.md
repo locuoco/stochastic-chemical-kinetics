@@ -17,6 +17,24 @@ Bibliography:
 
 ## The code
 
+### Code structure
+
+The code is written as a library in C++20 with Python bindings using [Pybind11](https://github.com/pybind/pybind11). The repository is structured in the following way:
+
+* `experiments`: directory containing example code using the library and experiments for University projects.
+* `include/sck`: directory containing the C++ header files to include in implementation files.
+  * `cme.hpp`: it include classes for generic CME equation integration and applications to enzyme kinetics.
+  * `gillespie.hpp`: it include classes for generic Gillespie algorithm and applications to enzyme kinetics.
+  * `runge_kutta.hpp`: explicit Runge-Kutta methods used for integration of the CME equation.
+  * `tensor.hpp`: classes, aliases and data structures for vectors, matrices and tensors with some helper functions.
+* `pybind`: directory containing C++ implementation files that binds the code inside the `include` directory. It also contains the Windows dynamic-link libraries which can be directly imported in Python scripts (on Linux, you will need to recompile them).
+  * `cme_pybind.cpp`: Python bindings for CME.
+  * `gillespie_pybind.cpp`: Python bindings for Gillespie algorithm.
+  * `runge_kutta_pybind.cpp`: Python bindings for Runge-Kutta methods.
+* `tests`: Tests that verify the correctness of the current implementation.
+
+### Dependencies
+
 ...TODO...
 
 ## Chemical master equation
