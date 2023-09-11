@@ -23,8 +23,8 @@ The code is written as a library in C++20 with Python bindings using [Pybind11](
 
 * `experiments`: directory containing example code using the library and experiments for University projects.
 * `include/sck`: directory containing the C++ header files to include in implementation files.
-  * `cme.hpp`: it include classes for generic CME equation integration and applications to enzyme kinetics.
-  * `gillespie.hpp`: it include classes for generic Gillespie algorithm and applications to enzyme kinetics.
+  * `cme.hpp`: it includes classes for generic CME equation integration and applications to enzyme kinetics.
+  * `gillespie.hpp`: it includes classes for generic Gillespie algorithm and applications to enzyme kinetics.
   * `runge_kutta.hpp`: explicit Runge-Kutta methods used for integration of the CME equation.
   * `tensor.hpp`: classes, aliases and data structures for vectors, matrices and tensors with some helper functions.
 * `pybind`: directory containing C++ implementation files that binds the code inside the `include` directory. It also contains the Windows dynamic-link libraries which can be directly imported in Python scripts (on Linux, you will need to recompile them).
@@ -35,7 +35,9 @@ The code is written as a library in C++20 with Python bindings using [Pybind11](
 
 ### Dependencies
 
-...TODO...
+The C++ header files have no dependency other than a C++20-complying compiler. To compile the Python bindings, [Pybind11](https://github.com/pybind/pybind11) must be installed on the current machine. For more information on how to compile these bindings, see the individual files inside the `pybind` folder. Rename the library paths accordingly, if needed.
+
+The resulting Python library will require NumPy 1.7.0 or any later version.
 
 ## Chemical master equation
 
