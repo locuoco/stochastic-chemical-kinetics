@@ -35,7 +35,7 @@ The code is written as a library in C++20 with Python bindings using [Pybind11](
 
 ### Dependencies
 
-The C++ header files have no dependency other than a C++20-complying compiler. To compile the Python bindings, [Pybind11](https://github.com/pybind/pybind11) must be installed on the current machine. For more information on how to compile these bindings, see the individual files inside the `pybind` folder. Rename the library paths accordingly, if needed.
+The C++ header files have no dependencies other than a C++20-complying compiler. To compile the Python bindings, [Pybind11](https://github.com/pybind/pybind11) must be installed on the current machine. For more information on how to compile these bindings, see the individual files inside the `pybind` folder. Rename the library paths accordingly, if needed.
 
 The resulting Python library will require NumPy 1.7.0 or any later version.
 
