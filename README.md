@@ -187,7 +187,7 @@ From the conservation of the total substrate and product concentration, we have
 $`[S_T] := [S] + [C] + [P]`$
 such that
 $`\frac{d}{dt}[S_T]=0.`$
-The existence of these constants means that there are only two independent ODEs to solve, corresponding to two independent variables, for example
+The existence of these constants implies that there are only two independent ODEs to solve, corresponding to two independent variables, for example
 $[C]$
 and
 $[P]:$
@@ -196,7 +196,7 @@ $[P]:$
 \frac{d[C]}{dt} =  k_f ([E_T] - [C]) ([S_T] - [C] - [P]) - k_b [C] - k_\textrm{cat} [C],
 ```
 ```math
-\frac{d[P]}{dt} = k_\textrm{cat} [C],
+\frac{d[P]}{dt} = k_\textrm{cat} [C].
 ```
 
 The number of independent variables can be further reduced to one using approximations.
