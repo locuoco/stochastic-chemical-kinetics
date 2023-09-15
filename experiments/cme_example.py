@@ -16,6 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+# have mmpeg installed to run this script. Using conda:
+
+#   conda install -c conda-forge ffmpeg
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation, colors
@@ -26,6 +30,7 @@ sys.path.append('../pybind')
 import cme
 
 c = cme.single_substrate(kf=10, kb=9, kcat=1, ET=10, ST=9)
+init_p = np.copy(c.p)
 
 fig = plt.figure()
 ax = plt.axes()
@@ -36,6 +41,7 @@ im.set_clim(1e-10, 1)
 annot = ax.annotate('Time: 0.000', (0.09, 0.92), xycoords='figure fraction')
 
 def init():
+	c.p = np.copy(init_p)
 	im.set_data(c.p)
 	annot.set_text('Time: 0.000')
 	return im, annot
@@ -47,7 +53,13 @@ def animate(i):
 	annot.set_text('Time: {:.3f}'.format(current_t))
 	return im, annot
 
-anim = animation.FuncAnimation(fig, animate, init_func=init, interval=1000/30, blit=False)
+fps = 30
+
+anim = animation.FuncAnimation(fig, animate, init_func=init, frames=5000, interval=1000/fps, blit=False)
+
+if len(sys.argv) > 1:
+	if sys.argv[1] == 's' or sys.argv[1] == 'save':
+		anim.save('cme_example.mp4', fps=fps, extra_args=['-vcodec', 'libx264'])
 
 plt.xlabel('Product count ($P$)')
 plt.ylabel('Enzyme-substrate complex count ($C$)')
