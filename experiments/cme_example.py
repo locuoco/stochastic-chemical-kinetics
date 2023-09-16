@@ -30,7 +30,7 @@ sys.path.append('../pybind')
 import cme
 
 c = cme.single_substrate(kf=10, kb=9, kcat=1, ET=10, ST=9)
-init_p = np.copy(c.p)
+init_p = c.p.copy()
 
 fig = plt.figure()
 ax = plt.axes()
@@ -41,7 +41,8 @@ im.set_clim(1e-10, 1)
 annot = ax.annotate('Time: 0.000', (0.09, 0.92), xycoords='figure fraction')
 
 def init():
-	c.p = np.copy(init_p)
+	c.p = init_p
+	c.t = 0
 	im.set_data(c.p)
 	annot.set_text('Time: 0.000')
 	return im, annot
