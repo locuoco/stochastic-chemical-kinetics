@@ -60,7 +60,7 @@ anim = animation.FuncAnimation(fig, animate, init_func=init, frames=5000, interv
 
 if len(sys.argv) > 1:
 	if sys.argv[1] == 's' or sys.argv[1] == 'save':
-		anim.save('cme_example.mp4', fps=fps, extra_args=['-vcodec', 'libx264'])
+		anim.save('resources/cme_example.mp4', fps=fps, extra_args=['-vcodec', 'libx264'])
 
 plt.xlabel('Product count ($P$)')
 plt.ylabel('Enzyme-substrate complex count ($C$)')
