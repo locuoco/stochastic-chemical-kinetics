@@ -35,9 +35,10 @@ void test_gillespie_tqssa_prod()
 {
 	using std::fabs;
 
-	std::size_t n = 10'000, t = 2;
+	std::size_t n = 10'000;
 	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
 	long long ET = 10, ST = 9;
+	double t = 2
 	double P1 = 0, P2 = 0;
 
 	gillespie::single_substrate sys1(kf, kb, kcat, ET, ST);

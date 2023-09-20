@@ -27,6 +27,7 @@ g++ tests/cme.cpp -o cme -std=c++20 -Wall -Wextra -pedantic -Ofast -fmax-errors=
 
 #include "../include/sck/runge_kutta.hpp"
 #include "../include/sck/cme.hpp"
+#include "../include/sck/gillespie.hpp"
 
 void test_cme_tqssa()
 // Test at high enzyme concentration that tQSSA agrees
@@ -65,9 +66,48 @@ void test_cme_tqssa()
 	assert(fabs(tq_mean_prod - ss_mean_prod) / ss_mean_prod < .01);
 }
 
+void test_cme_gillespie_tqssa()
+// Test that CME results agree with Gillespie.
+// The test passes if the average products population at a certain
+// time agree within 0.1% relative error
+{
+	using std::fabs;
+
+	std::size_t n_gillespie = 10'000;
+	double kf = 10, kb = 9, kcat = 1, kM = (kb + kcat) / kf;
+	long long ET = 10, ST = 9;
+	double t = 2, dt = 1e-4;
+	double gillespie_mean_prod = 0;
+
+	runge_kutta::ralston4 integ; // 4-th order Runge-Kutta integrator
+
+	// CME
+	cme::single_substrate_tqssa sys_c(kM, kcat, ET, ST);
+	sys_c.simulate(integ, dt, t);
+
+	double cme_mean_prod = sys_c.mean(sys_c.P);
+
+	// Gillespie
+	gillespie::single_substrate_tqssa sys_g(kM, kcat, ET, ST);
+	for (std::size_t i = 0; i < n_gillespie; ++i)
+	{
+		sys_g.x = 0;
+		sys_g.t = 0;
+		sys_g.simulate(t);
+		gillespie_mean_prod += sys_g.x[sys_g.P];
+	}
+	gillespie_mean_prod /= n_gillespie;
+
+	std::cout << "cme: " << cme_mean_prod << '\n';
+	std::cout << "gillespie: " << gillespie_mean_prod << '\n';
+
+	assert(fabs(cme_mean_prod - gillespie_mean_prod) / gillespie_mean_prod < .001);
+}
+
 int main()
 {
 	test_cme_tqssa();
+	test_cme_gillespie_tqssa();
 
 	return 0;
 }
