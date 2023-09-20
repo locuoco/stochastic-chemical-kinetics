@@ -47,7 +47,7 @@ completion_time_weights = {
 completion_states = {'Exact': (0, ST), 'tQSSA': ST, 'sQSSA': ST}
 
 for s in sim:
-	for bin, i in zip(bins, range(bins.size)):
+	for i, bin in enumerate(bins):
 		c[s].simulate(dt=1e-4, t_final=bin, noreturn=True)
 		completion_time_weights[s][i] = c[s].p[completion_states[s]]
 

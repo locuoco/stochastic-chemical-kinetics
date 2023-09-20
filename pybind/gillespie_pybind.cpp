@@ -17,7 +17,7 @@
 /*
 
 Compilation (MinGW):
-g++ -shared -static-libgcc -static-libstdc++ -std=c++20 -Wall -Wextra -pedantic -O3 -fmax-errors=1 -DMS_WIN64 -fPIC -IC:\Users\aless\Desktop\myLib\include -IC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\include -LC:\ProgramData\Anaconda3\pkgs\python-3.9.12-h6244533_0\libs gillespie_pybind.cpp -o gillespie.pyd -lPython39
+g++ -shared -static -std=c++20 -Wall -Wextra -pedantic -O3 -fmax-errors=1 -DMS_WIN64 -fPIC -IC:\ProgramData\mambaforge\pkgs\pybind11-2.11.1-py311h005e61a_0\Lib\site-packages\pybind11\include -IC:\ProgramData\mambaforge\pkgs\python-3.11.5-h2628c8c_0_cpython\include -LC:\ProgramData\mambaforge\pkgs\python-3.11.5-h2628c8c_0_cpython\libs gillespie_pybind.cpp -o gillespie.pyd -lPython311
 
 */
 
