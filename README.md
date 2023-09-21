@@ -1,5 +1,5 @@
 # Stochastic chemical kinetics
-Stochastic chemical kinetics library using Gillespie algorithm (also stochastic simulation algorithm or SSA) and chemical master equation (CME), with application to enzyme kinetics. What follows are the graphs obtained using the library. See the [experiments](https://github.com/locuoco/stochastic-chemical-kinetics/tree/main/experiments) folder for the code.
+Stochastic chemical kinetics library using Gillespie algorithm (also stochastic simulation algorithm or SSA) and chemical master equation (CME), with application to enzyme kinetics. What follows are the graphs obtained using the library. See the [experiments](https://github.com/locuoco/stochastic-chemical-kinetics/tree/main/experiments) folder for the source code of the Python scripts.
 
 cme_averages.py | cme_completion_times.py| cme_example.py | cme_stationary_dist.py
 ----------------|------------------|----------------|----------------
