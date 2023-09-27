@@ -379,8 +379,8 @@ $E$
 and
 $`S_P`$
 is dephosphorylated by phosphatase
-$D$
-. From the law of mass action we obtain these six differential equations:
+$D.$
+From the law of mass action we obtain these six differential equations:
 
 ```math
 \frac{d[S]}{dt} = -k_{fe} [E] [S] + k_{be} [C] + k_d [C_P],
@@ -434,7 +434,7 @@ from which we obtain
 where
 
 ```math
-K_{ME} = \frac{k_{be} + k_e}{k_{fe}}, \qquad K_MD = \frac{k_{bd} + k_d}{k_{fd}}.
+K_{ME} = \frac{k_{be} + k_e}{k_{fe}}, \qquad K_{MD} = \frac{k_{bd} + k_d}{k_{fd}}.
 ```
 
 Substituting into the equation for
