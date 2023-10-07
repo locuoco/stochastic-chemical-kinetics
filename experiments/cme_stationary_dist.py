@@ -70,8 +70,7 @@ for s in sim:
 	print(s, ave[s], '+/-', np.sqrt(np.maximum(msq[s] - ave[s]**2, 0)))
 
 bins = np.linspace(0, ST, 21)
-bins_all = np.linspace(0, ST+1, ST+2)
-x = (bins_all[1:] + bins_all[:-1])/2
+x = np.linspace(0, ST, ST+1)
 
 plt.hist(x, bins, weights=SP_hat_dists['tQSSA'], label='tQSSA', density=True, color='red', alpha=.6)
 plt.hist(x, bins, weights=SP_hat_dists['sQSSA'], label='sQSSA', density=True, color='gray', alpha=.3)

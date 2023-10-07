@@ -46,8 +46,9 @@ g['tQSSA'] = gillespie.goldbeter_koshland_tqssa(kME=kME, ke=ke, kMD=kMD, kd=kd, 
 g['sQSSA'] = gillespie.goldbeter_koshland_sqssa(kME=kME, ke=ke, kMD=kMD, kd=kd, ET=ET, DT=DT, ST=ST)
 
 SP_hats = {}
+weights = {}
 init_conditions = {'Exact': [ST//2, 0, 0], 'tQSSA': [ST//2], 'sQSSA': [ST//2]}
-max_t = 1000
+max_t = 5000
 
 tracked_species = {
 	'Exact': np.array([g['Exact'].species.SP, g['Exact'].species.CP], dtype=int),
@@ -58,17 +59,24 @@ tracked_species = {
 for s in sim:
 	g[s].x = init_conditions[s]
 	g[s].t = 0
-	x, _ = g[s].simulate(t_final=max_t)
-	SP_hats[s] = np.sum(x[:,tracked_species[s]], axis=1)
+	x, t = g[s].simulate(t_final=max_t)
+	SP_hats[s] = np.sum(x[:-1,tracked_species[s]], axis=1)
+	weights[s] = np.diff(t)
+
+def weighted_ave_sd(arr, weights):
+	average = np.average(arr, weights=weights)
+	variance = np.average((arr-average)**2, weights=weights)
+	return average, np.sqrt(variance)
 
 for s in sim:
-	print(s, np.mean(SP_hats[s]), '+/-', np.std(SP_hats[s]))
+	average, sd = weighted_ave_sd(SP_hats[s], weights=weights[s])
+	print(s, average, '+/-', sd)
 
 bins = np.linspace(0, ST, 21)
 
-plt.hist(SP_hats['Exact'], bins, label='Exact', density=True, color='blue', histtype='step', fill=False)
-plt.hist(SP_hats['tQSSA'], bins, label='tQSSA', density=True, color='red', alpha=.6)
-plt.hist(SP_hats['sQSSA'], bins, label='sQSSA', density=True, color='gray', alpha=.3)
+plt.hist(SP_hats['Exact'], bins, weights=weights['Exact'], label='Exact', density=True, color='blue', histtype='step', fill=False)
+plt.hist(SP_hats['tQSSA'], bins, weights=weights['tQSSA'], label='tQSSA', density=True, color='red', alpha=.6)
+plt.hist(SP_hats['sQSSA'], bins, weights=weights['sQSSA'], label='sQSSA', density=True, color='gray', alpha=.3)
 
 plt.xlabel('Steady-state phosphorylated substrate count ($\hat{S}_P$)')
 plt.ylabel('Probability density')
