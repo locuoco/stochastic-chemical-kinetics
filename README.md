@@ -323,7 +323,7 @@ used in the ODE treatment of the reaction rates (Cao and Samuels, 2009):
 Remembering that we have only two independent variables thanks to the conservation of
 $`S_T = S + C + P`$
 and
-$`E_T = E + T,`$
+$`E_T = E + C,`$
 the CME gives
 
 ```math
